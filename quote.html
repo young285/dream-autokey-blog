@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#071a3d">
+<title>자동차키 무료 비교견적 | 드림 자동차키</title>
+<meta name="description" content="차종·연식·지역·현재 키 상태를 남기면 드림 자동차키에서 작업 가능 여부와 비교견적을 안내해드립니다.">
+<meta property="og:type" content="website">
+<meta property="og:title" content="🔑 자동차키 무료 비교견적">
+<meta property="og:description" content="차종 · 연식 · 지역 · 현재 키 상태를 입력하면 작업 가능 여부와 견적을 안내해드립니다.">
+<meta property="og:url" content="https://young285.github.io/dream-autokey-blog/quote.html">
+<meta property="og:image" content="https://young285.github.io/dream-autokey-blog/icon-512.png">
+<meta property="og:site_name" content="드림 자동차키">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="자동차키 무료 비교견적">
+<meta name="twitter:description" content="차종·연식·지역·현재 키 상태를 입력해 간편하게 견적을 요청하세요.">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<style>
+:root{--navy:#071a3d;--orange:#ff9800;--line:#dbe3ef;--muted:#64748b;--bg:#f4f7fb}
+*{box-sizing:border-box}body{margin:0;font-family:system-ui,-apple-system,"Noto Sans KR",sans-serif;background:var(--bg);color:#172033}.top{background:linear-gradient(135deg,#071a3d,#123c78);color:#fff;padding:24px 18px}.top h1{margin:0;font-size:25px}.top p{margin:8px 0 0;opacity:.85;line-height:1.5}.wrap{max-width:720px;margin:auto;padding:14px 12px 50px}.card{background:#fff;border:1px solid var(--line);border-radius:20px;padding:18px;box-shadow:0 4px 18px #0000000b}.fast{color:#047857;font-weight:900;font-size:13px;margin-bottom:12px}label{display:block;font-weight:900;font-size:13px;margin:12px 0 6px}input,select,textarea{width:100%;border:1px solid #cbd5e1;border-radius:12px;padding:13px;font-size:16px;background:#fff}textarea{min-height:110px;resize:vertical}.chips{display:flex;flex-wrap:wrap;gap:8px}.chip{border:1px solid #cbd5e1;background:#fff;color:#334155;border-radius:999px;padding:10px 13px;font-weight:800}.chip.active{background:#071a3d;color:#fff;border-color:#071a3d}.send{width:100%;margin-top:18px;border:0;border-radius:13px;padding:15px;font-size:17px;font-weight:900;background:var(--orange);color:#fff}.call{display:block;text-align:center;margin-top:10px;border:1px solid var(--line);border-radius:13px;padding:13px;text-decoration:none;color:#172033;font-weight:900;background:#fff}.note{font-size:12px;color:var(--muted);line-height:1.6;margin-top:14px}.brand{text-align:center;margin-top:15px;font-size:12px;color:#64748b}.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}@media(max-width:560px){.grid{grid-template-columns:1fr}.top h1{font-size:22px}}
+</style>
+</head>
+<body>
+<header class="top"><h1>🔑 자동차키 무료 비교견적</h1><p>차량 정보를 남겨주시면 작업 가능 여부와 견적을 안내해드립니다.</p></header>
+<main class="wrap"><div class="card">
+<div class="fast">⚡ 차량·지역 정보를 정확히 남겨주시면 더 빠르게 확인할 수 있습니다.</div>
+<div class="grid"><div><label>연락처 *</label><input id="contact" inputmode="tel" placeholder="010-0000-0000"></div><div><label>지역 *</label><input id="region" placeholder="예: 인천 송도"></div><div><label>차종 *</label><input id="car" placeholder="예: 르노 QM6"></div><div><label>연식</label><input id="year" inputmode="numeric" placeholder="예: 2020"></div></div>
+<label>현재 키 상황 *</label><div id="chips" class="chips"><button class="chip active" data-v="스마트키 있음">스마트키 있음</button><button class="chip" data-v="스마트키 없음">스마트키 없음</button><button class="chip" data-v="스마트키 일부 있음">스마트키 일부 있음</button><button class="chip" data-v="도어락">도어락</button><button class="chip" data-v="기타">기타</button></div>
+<label>요청 내용</label><textarea id="memo" placeholder="예: 예비 스마트키 1개 추가 견적 요청"></textarea>
+<button class="send" id="send">무료 비교견적 요청하기</button>
+<a class="call" href="tel:01030040452">☎ 010-3004-0452 전화 문의</a>
+<div class="note">입력하신 내용은 견적 안내 목적으로 사용됩니다. 차량의 정당한 소유자 또는 사용 권한이 있는 경우에만 작업이 가능합니다.</div>
+</div><div class="brand">드림 자동차키 · 인천 자동차키 출장 작업</div></main>
+<script>
+let state='스마트키 있음';document.querySelectorAll('.chip').forEach(b=>b.onclick=()=>{state=b.dataset.v;document.querySelectorAll('.chip').forEach(x=>x.classList.toggle('active',x===b))});
+document.getElementById('send').onclick=()=>{const c=document.getElementById('contact').value.trim(),r=document.getElementById('region').value.trim(),car=document.getElementById('car').value.trim();if(!c||!r||!car){alert('연락처, 지역, 차종을 입력해 주세요.');return}const y=document.getElementById('year').value.trim(),m=document.getElementById('memo').value.trim();const msg=`[드림 자동차키 무료 비교견적]
+연락처: ${c}
+지역: ${r}
+차종: ${car}
+연식: ${y||'-'}
+현재상황: ${state}
+요청: ${m||'-'}`;location.href=`sms:01030040452?body=${encodeURIComponent(msg)}`};
+</script></body></html>

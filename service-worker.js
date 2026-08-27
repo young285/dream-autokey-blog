@@ -1,5 +1,5 @@
-const CACHE='dream-autokey-blog-v2.2';
-const CORE=['./','./index.html','./manifest.webmanifest','./icon-192.png','./icon-512.png'];
-self.addEventListener('install',e=>{self.skipWaiting();e.waitUntil(caches.open(CACHE).then(c=>c.addAll(CORE))) });
+const CACHE='dream-autokey-blog-v2.4';
+const CORE=['./admin.html','./quote.html','./index.html','./manifest.webmanifest','./icon-192.png','./icon-512.png'];
+self.addEventListener('install',e=>{self.skipWaiting();e.waitUntil(caches.open(CACHE).then(c=>c.addAll(CORE)).catch(()=>{}))});
 self.addEventListener('activate',e=>{e.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(k=>k!==CACHE).map(k=>caches.delete(k)))).then(()=>self.clients.claim()))});
-self.addEventListener('fetch',e=>{if(e.request.method!=='GET')return;const u=new URL(e.request.url);const page=e.request.mode==='navigate'||u.pathname.endsWith('/')||u.pathname.endsWith('/index.html');if(page){e.respondWith(fetch(e.request,{cache:'no-store'}).catch(()=>caches.match('./index.html')));return}e.respondWith(caches.match(e.request).then(r=>r||fetch(e.request).then(res=>{if(res&&res.ok){const x=res.clone();caches.open(CACHE).then(c=>c.put(e.request,x))}return res}))) });
+self.addEventListener('fetch',e=>{if(e.request.method!=='GET')return;const u=new URL(e.request.url);if(e.request.mode==='navigate'){e.respondWith(fetch(e.request,{cache:'no-store'}).catch(()=>{if(u.pathname.endsWith('/admin.html'))return caches.match('./admin.html');if(u.pathname.endsWith('/quote.html')||u.pathname.endsWith('/'))return caches.match('./quote.html');return caches.match('./index.html')}));return}e.respondWith(caches.match(e.request).then(r=>r||fetch(e.request).then(res=>{if(res&&res.ok){const x=res.clone();caches.open(CACHE).then(c=>c.put(e.request,x)).catch(()=>{})}return res}))) });
