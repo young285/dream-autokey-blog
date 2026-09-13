@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#071a3d">
-<meta name="app-version" content="3.10">
+<meta name="app-version" content="3.12">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icon-192.png">
 <title>드림 자동차키 블로그</title>
@@ -23,7 +23,7 @@
 </style>
 </head>
 <body>
-<header class="top"><h1>🔑 드림 자동차키 블로그 <span style="font-size:11px;opacity:.75">관리전용</span></h1><small>원고 제작 · 보관 · 게시 달력 · 중복관리 · 무료견적 · 네이버 올리기 · 게시취소 · 견적전용페이지 · 관리전용 · v3.10</small></header>
+<header class="top"><h1>🔑 드림 자동차키 블로그 <span style="font-size:11px;opacity:.75">관리전용</span></h1><small>원고 제작 · 보관 · 게시 달력 · 중복관리 · 무료견적 · 네이버 올리기 · 게시취소 · 견적전용페이지 · 관리전용 · v3.12</small></header>
 <main class="wrap">
 <nav class="tabs"><button class="active" data-tab="write">새글</button><button data-tab="complete">완성본</button><button data-tab="archive">보관함</button><button data-tab="calendar">📅 달력</button></nav>
 
@@ -47,7 +47,7 @@
 <div><label>목표 글자 수</label><select id="targetChars"><option>800</option><option>1000</option><option selected>1500</option><option>2000</option><option value="custom">직접 입력</option></select></div>
 <div id="customCharsBox" class="hidden"><label>직접 입력</label><input id="customChars" type="number" min="500" max="5000" value="1500"></div>
 <div><label>원고 상태</label><select id="statusSelect"><option value="draft">작성중</option><option value="queue" selected>게시대기</option><option value="posted">게시완료</option></select></div>
-<div><label>게시 예정/완료 날짜</label><input id="publishDate" type="date"></div>
+<div><label>게시 예정/완료 날짜</label><input id="publishDate" type="date"><button type="button" id="savePublishDate" class="ok" style="width:100%;margin-top:7px">💾 게시일 저장</button><div id="publishDateStatus" class="status"></div></div>
 <div class="full"><label>네이버 게시글 주소 (게시 후 선택)</label><input id="naverUrl" placeholder="https://blog.naver.com/..."></div>
 </div>
 <div class="full"><label>추천 제목</label><div class="note">차량·지역·작업정보로 여러 제목을 만들고, 보관글과 비슷한 제목은 경고합니다.</div><div class="actions"><button type="button" id="recommendTitles" class="secondary">💡 추천 제목 10개</button></div><div id="titleSuggestions" class="title-suggestions"></div></div>
@@ -287,6 +287,7 @@ function copyPublicQuoteUrl(){return cp(new URL('./quote.html',location.href).hr
 $('#rebuildPhotoDB')?.addEventListener('click',async()=>{const b=$('#rebuildPhotoDB');const old=b.textContent;b.disabled=true;b.textContent='재검사 중...';const n=await ensureSavedPhotoHashes();await checkPhotoDuplicates();renderPhotos();b.disabled=false;b.textContent=old;alert(`과거 원고 사진 중복DB를 다시 만들었습니다.${n?`\n${n}개 원고의 사진 지문을 복구했습니다.`:'\n기존 사진 지문은 정상입니다.'}`)});
 function currentPost(){applyBlogPreview(false);return {id:$('#editId').value||uid(),car:$('#car').value.trim(),year:$('#year').value.trim(),region:$('#region').value,work:$('#work').value.trim(),reason:$('#reason').value.trim(),equipment:$('#equipment').value.trim(),result:$('#result').value.trim(),memo:$('#memo').value.trim(),targetChars:targetChars(),status:$('#statusSelect').value,publishDate:$('#publishDate').value||'',naverUrl:$('#naverUrl').value.trim(),title:$('#title').value.trim(),body:$('#body').value.trim(),tags:$('#tags').value.trim(),quoteCta:$('#quoteCta').value.trim(),photos:[...srcPhotos],markedPhotos:[...marked],photoHashes:[...photoHashes],createdAt:new Date().toISOString(),updatedAt:new Date().toISOString()}}
 $('#savePost').onclick=async()=>{const old=posts.find(p=>p.id===$('#editId').value),p=currentPost();if(old)p.createdAt=old.createdAt;await dbPut(p);await reloadPosts();$('#editId').value=p.id;$('#writeStatus').textContent='원고를 저장했습니다.';renderAll()};
+$('#savePublishDate').onclick=async()=>{const id=$('#editId').value;if(!id){$('#publishDateStatus').textContent='먼저 보관함에서 수정할 글을 선택하세요.';return}const p=posts.find(x=>x.id===id);if(!p){$('#publishDateStatus').textContent='저장된 글을 찾지 못했습니다.';return}const d=$('#publishDate').value;if(!d){$('#publishDateStatus').textContent='게시일을 선택하세요.';return}p.publishDate=d;p.status=$('#statusSelect').value||p.status||'posted';p.updatedAt=new Date().toISOString();await dbPut(p);await reloadPosts();renderAll();$('#publishDateStatus').textContent=`게시일을 ${d}로 저장했습니다.`;$('#writeStatus').textContent=`게시일 수정 완료: ${d}`};
 function resetForm(){['editId','car','year','work','reason','result','memo','title','body','tags','naverUrl'].forEach(id=>$('#'+id).value='');$('#equipment').value='전용 장비';$('#region').value=settings.regions[0]||'';setPickerFromRegion($('#region').value);$('#statusSelect').value='queue';$('#publishDate').value='';$('#targetChars').value='1500';$('#customCharsBox').classList.add('hidden');srcPhotos=[];marked=[];photoHashes=[];renderPhotos();updateQuoteCta();updateChar();$('#dupBox').classList.remove('show');$('#photoDup').classList.remove('show')}
 $('#newPost').onclick=resetForm;
 async function reloadPosts(){posts=(await dbAll()).sort((a,b)=>(b.updatedAt||'').localeCompare(a.updatedAt||''))}
@@ -344,7 +345,7 @@ window.publishCopyBody=async()=>{applyBlogPreview(false);await cp($('#body').val
 window.publishCopyTags=async()=>{await cp($('#tags').value.trim());markPublishStep(4)};
 window.publishPreparePhotos=async()=>{if(!srcPhotos.length)return alert('사진이 없습니다.');marked=[];for(const s of srcPhotos)marked.push(await markOne(s));renderPhotos();$('#pubPhotoInfo').textContent=`사진 ${srcPhotos.length}장 · 전화번호 적용 완료`;markPublishStep(5)};
 window.publishDownloadPhotos=()=>{if(!marked.length)return alert('먼저 전화번호 넣기를 실행하세요.');marked.forEach((s,i)=>setTimeout(()=>{const a=document.createElement('a');a.href=s;a.download=`드림블로그_${String(i+1).padStart(2,'0')}.jpg`;a.click()},i*250));markPublishStep(5)};
-window.finishNaverPublish=async()=>{const url=$('#publishNaverUrl').value.trim();$('#naverUrl').value=url;$('#statusSelect').value='posted';$('#publishDate').value=localISO();const old=posts.find(p=>p.id===$('#editId').value),p=currentPost();if(old)p.createdAt=old.createdAt;p.status='posted';p.publishDate=localISO();p.naverUrl=url;await dbPut(p);await reloadPosts();$('#editId').value=p.id;renderAll();markPublishStep(6);$('#writeStatus').textContent='오늘 날짜로 게시완료 기록했습니다.';setTimeout(()=>closePublishHelper(),500)};
+window.finishNaverPublish=async()=>{const url=$('#publishNaverUrl').value.trim();$('#naverUrl').value=url;$('#statusSelect').value='posted';if(!$('#publishDate').value)$('#publishDate').value=localISO();const old=posts.find(p=>p.id===$('#editId').value),p=currentPost();if(old)p.createdAt=old.createdAt;p.status='posted';p.publishDate=$('#publishDate').value||localISO();p.naverUrl=url;await dbPut(p);await reloadPosts();$('#editId').value=p.id;renderAll();markPublishStep(6);$('#writeStatus').textContent=`게시완료 기록: ${p.publishDate}`;setTimeout(()=>closePublishHelper(),500)};
 $('#naverPublish').onclick=openPublishHelper;
 $('#saveSettings').onclick=()=>{settings.business=$('#settingBusiness').value.trim()||'드림 자동차키';settings.phone=$('#settingPhone').value.trim()||'010-3004-0452';settings.quoteText=$('#settingQuoteText').value.trim();saveLocal('dream_blog_settings_v2',settings);$('#phone').value=settings.phone;updateQuoteCta();$('#settingsStatus').textContent='설정을 저장했습니다.'};
 function downloadBlob(blob,name){const a=document.createElement('a'),u=URL.createObjectURL(blob);a.href=u;a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(u),1000)}
