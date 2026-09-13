@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#071a3d">
-<meta name="app-version" content="3.12">
+<meta name="app-version" content="3.13">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icon-192.png">
 <title>드림 자동차키 블로그</title>
@@ -20,12 +20,24 @@
 
 /* v3.10 전화상담 tel 링크 수정 */
 #complete{max-width:760px;margin:0 auto}.naver-shell{background:#fff;border:1px solid #e5e7eb;border-radius:16px;overflow:hidden}.naver-head{position:sticky;top:116px;z-index:20;background:#fff;border-bottom:1px solid #eef0f2;padding:10px 12px;display:flex;align-items:center;justify-content:space-between;gap:8px}.naver-head b{font-size:15px}.naver-head span{font-size:11px;color:#64748b}.naver-paper{padding:12px 14px 80px}.naver-paper .blog-editor{background:#fff;border:0;padding:0}.naver-paper .blog-paper{border:0;box-shadow:none;padding:0}.naver-paper .safetyline{margin-bottom:10px}.naver-paper .blog-title-edit{font-size:23px;font-weight:500;min-height:58px;padding:12px 2px 16px;border-bottom:1px solid #edf0f2}.naver-paper .blog-text-edit{font-size:16px;line-height:2.0;padding:12px 3px}.naver-paper .blog-photo img,.naver-paper .blog-cta img{border-radius:0}.naver-paper .transferbar,.naver-paper .blog-photo-tools,.naver-paper .cta-actions{justify-content:flex-end}.naver-paper .copy-mini,.naver-paper .blog-photo-tools button,.naver-paper .cta-actions button{font-size:11px;padding:7px 9px;border-radius:8px}.naver-paper .blog-block{margin:18px 0}.naver-paper .blog-cta{margin:24px 0}.naver-paper .blog-phone{margin:24px 0}.naver-paper .blog-tags-edit{font-size:15px;line-height:1.9}.naver-bottom{position:sticky;bottom:8px;z-index:25;display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:8px;background:#ffffffee;backdrop-filter:blur(8px);border:1px solid #e5e7eb;border-radius:14px;margin-top:10px}.naver-bottom button{min-height:44px}.moved-preview>h2,.moved-preview>.preview-help,.moved-preview>.actions{display:none}.moved-preview{border:0!important;box-shadow:none!important;padding:0!important;background:transparent!important}
+
+.phone-transfer-card{background:linear-gradient(135deg,#eff6ff,#f0fdf4);border:1px solid #bfdbfe}
+.transfer-hero{font-size:22px;font-weight:950;margin-bottom:6px}
+.transfer-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}
+.transfer-action{background:#fff;border:1px solid var(--line);border-radius:14px;padding:14px}
+.transfer-action b{display:block;font-size:16px;margin-bottom:6px}
+.transfer-action p{font-size:12px;color:var(--muted);line-height:1.55;margin:0 0 10px}
+.transfer-action button{width:100%;min-height:48px}
+.transfer-check{margin-top:12px;background:#fff;border:1px dashed #93c5fd;border-radius:12px;padding:12px;font-size:12px;line-height:1.65;color:#334155}
+.transfer-status{margin-top:10px;font-size:13px;font-weight:900;color:var(--ok)}
+@media(max-width:650px){.transfer-grid{grid-template-columns:1fr}.tabs{justify-content:flex-start;padding-left:2px;padding-right:8px}.tabs button{min-width:118px}}
+
 </style>
 </head>
 <body>
-<header class="top"><h1>🔑 드림 자동차키 블로그 <span style="font-size:11px;opacity:.75">관리전용</span></h1><small>원고 제작 · 보관 · 게시 달력 · 중복관리 · 무료견적 · 네이버 올리기 · 게시취소 · 견적전용페이지 · 관리전용 · v3.12</small></header>
+<header class="top"><h1>🔑 드림 자동차키 블로그 <span style="font-size:11px;opacity:.75">관리전용</span></h1><small>원고 제작 · 보관 · 게시 달력 · 중복관리 · 무료견적 · 네이버 올리기 · 게시취소 · 견적전용페이지 · 관리전용 · v3.13</small></header>
 <main class="wrap">
-<nav class="tabs"><button class="active" data-tab="write">새글</button><button data-tab="complete">완성본</button><button data-tab="archive">보관함</button><button data-tab="calendar">📅 달력</button></nav>
+<nav class="tabs"><button class="active" data-tab="write">새글</button><button data-tab="complete">완성본</button><button data-tab="archive">보관함</button><button data-tab="calendar">📅 달력</button><button data-tab="transfer">📱 휴대폰 교체</button></nav>
 
 <section id="home" class="panel">
 <div class="card hero"><h2>✍️ 한가할 때 미리 만들고, 올릴 때 꺼내 쓰기</h2><div class="note">원고를 여러 건 저장하고 게시일을 달력에서 관리합니다. 글과 사진의 중복도 자동으로 확인합니다.</div></div>
@@ -74,6 +86,36 @@
 
 <section id="calendar" class="panel">
 <div class="card"><div class="calendar-head"><button id="calPrev">‹ 이전</button><div id="calTitle" class="calendar-title"></div><button id="calNext">다음 ›</button></div><div class="week"><div>일</div><div>월</div><div>화</div><div>수</div><div>목</div><div>금</div><div>토</div></div><div id="calGrid" class="calgrid"></div><div id="calSummary" class="note" style="margin-top:10px"></div></div>
+</section>
+
+
+<section id="transfer" class="panel">
+<div class="card phone-transfer-card">
+  <div class="transfer-hero">📱 휴대폰 교체 · 전체 이전</div>
+  <div class="note">기존 휴대폰의 원고·보관함·게시일·사진·지역·전화번호 설정을 백업 파일 하나로 새 휴대폰에 옮길 수 있습니다.</div>
+  <div class="transfer-grid">
+    <div class="transfer-action">
+      <b>1️⃣ 기존 휴대폰 · 전체 백업</b>
+      <p>현재 앱에 저장된 원고, 사진, 게시 날짜와 설정을 JSON 백업 파일로 저장합니다.</p>
+      <button type="button" id="phoneBackupBtn">📦 전체 백업 파일 만들기</button>
+    </div>
+    <div class="transfer-action">
+      <b>2️⃣ 새 휴대폰 · 전체 복원</b>
+      <p>새 휴대폰에서 이 앱을 연 뒤 기존 휴대폰에서 만든 백업 파일을 선택하세요.</p>
+      <button type="button" id="phoneRestoreBtn" class="ok">♻️ 전체 복원하기</button>
+      <input id="phoneRestoreFile" type="file" accept=".json,application/json" hidden>
+    </div>
+  </div>
+  <div class="transfer-check">
+    <b>옮기는 순서</b><br>
+    ① 기존 휴대폰에서 <b>전체 백업 파일 만들기</b><br>
+    ② 생성된 <b>드림블로그_전체백업.json</b>을 Google Drive·카카오톡·내 파일 등으로 새 휴대폰에 이동<br>
+    ③ 새 휴대폰에서 드림 자동차키 블로그 앱 접속<br>
+    ④ <b>전체 복원하기</b> → 백업 파일 선택<br>
+    ⑤ 보관함·달력·사진이 정상인지 확인
+  </div>
+  <div id="phoneTransferStatus" class="transfer-status"></div>
+</div>
 </section>
 
 <section id="regions" class="panel">
@@ -350,8 +392,41 @@ $('#naverPublish').onclick=openPublishHelper;
 $('#saveSettings').onclick=()=>{settings.business=$('#settingBusiness').value.trim()||'드림 자동차키';settings.phone=$('#settingPhone').value.trim()||'010-3004-0452';settings.quoteText=$('#settingQuoteText').value.trim();saveLocal('dream_blog_settings_v2',settings);$('#phone').value=settings.phone;updateQuoteCta();$('#settingsStatus').textContent='설정을 저장했습니다.'};
 function downloadBlob(blob,name){const a=document.createElement('a'),u=URL.createObjectURL(blob);a.href=u;a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(u),1000)}
 $('#exportData').onclick=()=>downloadBlob(new Blob([JSON.stringify({version:'2.1',exportedAt:new Date().toISOString(),settings,posts},null,2)],{type:'application/json'}),'드림블로그_전체백업.json');$('#importData').onclick=()=>$('#importFile').click();$('#importFile').onchange=e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=async()=>{try{const d=JSON.parse(r.result);if(!Array.isArray(d.posts))throw Error();settings={...settings,...(d.settings||{})};saveLocal('dream_blog_settings_v2',settings);for(const p of d.posts)await dbPut(p);await reloadPosts();migrateOldQuoteLinks();loadSettingsUi();renderAll();alert('복원했습니다.')}catch{alert('백업 파일을 확인하세요.')}};r.readAsText(f);e.target.value=''};
+
+$('#phoneBackupBtn')?.addEventListener('click',()=>{
+  const payload={version:'3.13',exportedAt:new Date().toISOString(),settings,posts};
+  const blob=new Blob([JSON.stringify(payload,null,2)],{type:'application/json'});
+  downloadBlob(blob,'드림블로그_전체백업.json');
+  const ts=$('#phoneTransferStatus');if(ts)ts.textContent=`백업 완료 · 원고 ${posts.length}건 · 사진 ${posts.reduce((n,p)=>n+((p.photos||[]).length),0)}장`;
+});
+$('#phoneRestoreBtn')?.addEventListener('click',()=>$('#phoneRestoreFile')?.click());
+$('#phoneRestoreFile')?.addEventListener('change',e=>{
+  const f=e.target.files?.[0];if(!f)return;
+  const r=new FileReader();
+  r.onload=async()=>{
+    try{
+      const d=JSON.parse(r.result);
+      if(!Array.isArray(d.posts))throw new Error('invalid backup');
+      if(!confirm(`백업 원고 ${d.posts.length}건을 이 휴대폰에 복원할까요?`)){e.target.value='';return}
+      settings={...settings,...(d.settings||{})};
+      saveLocal('dream_blog_settings_v2',settings);
+      for(const p of d.posts)await dbPut(p);
+      await reloadPosts();
+      await ensureSavedPhotoHashes();
+      loadSettingsUi();
+      renderAll();
+      const ts=$('#phoneTransferStatus');if(ts)ts.textContent=`복원 완료 · 원고 ${posts.length}건 · 사진 ${posts.reduce((n,p)=>n+((p.photos||[]).length),0)}장`;
+      alert('휴대폰 교체용 전체 복원이 완료되었습니다.');
+    }catch(err){
+      alert('백업 파일을 확인하세요.');
+    }
+    e.target.value='';
+  };
+  r.readAsText(f);
+});
+
 function loadSettingsUi(){$('#settingBusiness').value=settings.business;$('#settingPhone').value=settings.phone;$('#settingQuoteText').value=settings.quoteText;$('#phone').value=settings.phone;renderRegionSelect();initRegionPicker();setPickerFromRegion($('#region').value);updateQuoteCta()}
-function renderAll(){const pd=$('#phoneDisplayTop');if(pd)pd.textContent=settings.phone||'010-3004-0452';renderMetrics();renderHome();renderArchive();renderCalendar();renderRegions()}
+function renderAll(){const pd=$('#phoneDisplayTop');if(pd)pd.textContent=settings.phone||'010-3004-0452';renderMetrics();renderHome();renderArchive();renderCalendar();renderRegions();const ts=$('#phoneTransferStatus');if(ts)ts.textContent=`현재 저장 원고 ${posts.length}건 · 사진 ${posts.reduce((n,p)=>n+((p.photos||[]).length),0)}장`;}
 async function migrateV1(){try{const old=JSON.parse(localStorage.getItem('dream_blog_posts_v1')||'[]');if(!old.length)return;for(const o of old){const p={...o,id:uid(),status:'draft',publishDate:'',naverUrl:'',targetChars:1500,photos:[],markedPhotos:[],photoHashes:[],createdAt:new Date().toISOString(),updatedAt:new Date().toISOString()};await dbPut(p)}localStorage.removeItem('dream_blog_posts_v1')}catch{}}
 
 const PUBLIC_QUOTE_URL=new URL('./quote.html',location.href).href;
