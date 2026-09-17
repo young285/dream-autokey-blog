@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#071a3d">
-<meta name="app-version" content="3.17">
+<meta name="app-version" content="3.18">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icon-192.png">
 <title>드림 자동차키 블로그</title>
@@ -42,9 +42,9 @@
 </style>
 </head>
 <body>
-<header class="top"><h1>🔑 드림 자동차키 블로그 <span style="font-size:11px;opacity:.75">관리전용</span></h1><small>원고 제작 · 보관 · 게시 달력 · 중복관리 · 무료견적 · 네이버 올리기 · 게시취소 · 견적전용페이지 · 관리전용 · v3.17</small></header>
+<header class="top"><h1>🔑 드림 자동차키 블로그 <span style="font-size:11px;opacity:.75">관리전용</span></h1><small>원고 제작 · 보관 · 게시 달력 · 중복관리 · 무료견적 · 네이버 올리기 · 게시취소 · 견적전용페이지 · 관리전용 · v3.18</small></header>
 <main class="wrap">
-<nav class="tabs"><button class="active" data-tab="write">새글</button><button data-tab="complete">완성본</button><button data-tab="archive">보관함</button><button data-tab="calendar">📅 달력</button><button data-tab="transfer">📱 교체</button></nav>
+<nav class="tabs"><button class="active" data-tab="write">새글</button><button data-tab="complete">완성본</button><button data-tab="archive">보관함</button><button data-tab="calendar">📅 달력</button><button data-tab="transfer">📱 교체</button><button data-tab="recovery">🛟 복구</button></nav>
 
 <section id="home" class="panel">
 <div class="card hero"><h2>✍️ 한가할 때 미리 만들고, 올릴 때 꺼내 쓰기</h2><div class="note">원고를 여러 건 저장하고 게시일을 달력에서 관리합니다. 글과 사진의 중복도 자동으로 확인합니다.</div></div>
@@ -133,6 +133,20 @@
 <section id="settings" class="panel">
 <div class="card"><h2>기본 설정</h2><div class="grid"><div><label>상호</label><input id="settingBusiness" value="드림 자동차키"></div><div><label>전화번호</label><input id="settingPhone" value="010-3004-0452"></div><div class="full"><label>무료견적 기본 문구</label><textarea id="settingQuoteText">자동차키 무료견적 문의\n차량명 / 연식 / 현재 보유한 키 개수 / 지역을 알려주시면 작업 가능 여부와 견적을 안내해드립니다.</textarea></div></div><div class="actions"><button id="saveSettings">설정 저장</button><button id="exportData" class="secondary">전체 백업</button><button id="importData" class="ghost">백업 복원</button><input id="importFile" type="file" accept=".json" hidden></div><div id="settingsStatus" class="status"></div></div>
 </section>
+
+<section id="recovery" class="panel">
+  <div class="card">
+    <h2>🛟 게시글 데이터 복구 검사</h2>
+    <p class="muted">이 화면은 기존 글을 삭제하거나 수정하지 않고 IndexedDB를 읽기만 합니다.</p>
+    <div class="row">
+      <button type="button" id="scanRecovery" class="ok">🔎 기존 글 검사</button>
+      <button type="button" id="exportRecovery" class="secondary" disabled>💾 발견 데이터 즉시 백업</button>
+    </div>
+    <div id="recoverySummary" class="notice" style="margin-top:12px">아직 검사하지 않았습니다.</div>
+    <div id="recoveryList" style="margin-top:12px"></div>
+  </div>
+</section>
+
 </main>
 
 <div id="detailModal" class="modal hidden" onclick="closeModal()"><div class="modalbox" onclick="event.stopPropagation()"><div class="modalhead"><h2 id="modalTitle">상세</h2><button class="close" onclick="closeModal()">×</button></div><div id="modalBody"></div></div></div>
@@ -401,7 +415,7 @@ function downloadBlob(blob,name){const a=document.createElement('a'),u=URL.creat
 $('#exportData').onclick=()=>downloadBlob(new Blob([JSON.stringify({version:'2.1',exportedAt:new Date().toISOString(),settings,posts},null,2)],{type:'application/json'}),'드림블로그_전체백업.json');$('#importData').onclick=()=>$('#importFile').click();$('#importFile').onchange=e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=async()=>{try{const d=JSON.parse(r.result);if(!Array.isArray(d.posts))throw Error();settings={...settings,...(d.settings||{})};saveLocal('dream_blog_settings_v2',settings);for(const p of d.posts)await dbPut(p);await reloadPosts();migrateOldQuoteLinks();loadSettingsUi();renderAll();alert('복원했습니다.')}catch{alert('백업 파일을 확인하세요.')}};r.readAsText(f);e.target.value=''};
 
 $('#phoneBackupBtn')?.addEventListener('click',()=>{
-  const payload={version:'3.17',exportedAt:new Date().toISOString(),settings,posts};
+  const payload={version:'3.18',exportedAt:new Date().toISOString(),settings,posts};
   const blob=new Blob([JSON.stringify(payload,null,2)],{type:'application/json'});
   downloadBlob(blob,'드림블로그_전체백업.json');
   const ts=$('#phoneTransferStatus');if(ts)ts.textContent=`백업 완료 · 원고 ${posts.length}건 · 사진 ${posts.reduce((n,p)=>n+((p.photos||[]).length),0)}장`;
@@ -474,6 +488,60 @@ init();
   shell.querySelector('#v37Apply').onclick=()=>{ if(window.applyBlogPreview) window.applyBlogPreview(true); else document.getElementById('applyBlogPreview2')?.click(); };
   shell.querySelector('#v37Naver').onclick=()=>window.open('https://blog.naver.com','_blank');
 })();
+
+let recoveryFound=[];
+async function recoveryReadAll(){
+  return await new Promise((resolve,reject)=>{
+    const req=indexedDB.open('dream_blog_v2');
+    req.onerror=()=>reject(req.error);
+    req.onsuccess=()=>{
+      const dbx=req.result;
+      if(!dbx.objectStoreNames.contains('posts')){dbx.close();resolve([]);return;}
+      const tx=dbx.transaction('posts','readonly');
+      const st=tx.objectStore('posts');
+      const g=st.getAll();
+      g.onsuccess=()=>{const rows=g.result||[];dbx.close();resolve(rows)};
+      g.onerror=()=>{dbx.close();reject(g.error)};
+    };
+  });
+}
+function recoveryStatusName(v){
+  const x=String(v||'').toLowerCase();
+  if(x==='posted'||x.includes('완료')) return '게시완료';
+  if(x==='queue'||x.includes('대기')) return '게시대기';
+  if(x==='draft'||x.includes('초안')) return '초안';
+  return v||'상태없음';
+}
+async function scanRecoveryData(){
+  const sum=document.getElementById('recoverySummary'), list=document.getElementById('recoveryList');
+  sum.textContent='검사 중...'; list.innerHTML='';
+  try{
+    const rows=await recoveryReadAll();
+    recoveryFound=rows;
+    const counts={};
+    rows.forEach(r=>{const n=recoveryStatusName(r.status);counts[n]=(counts[n]||0)+1});
+    const parts=Object.entries(counts).map(([k,v])=>`${k} ${v}건`).join(' · ');
+    sum.innerHTML=`<b>총 ${rows.length}건 발견</b>${parts?'<br>'+parts:''}<br><span class="muted">읽기 전용 검사 완료. 데이터는 변경하지 않았습니다.</span>`;
+    document.getElementById('exportRecovery').disabled=!rows.length;
+    list.innerHTML=rows.slice().sort((a,b)=>String(b.updatedAt||b.createdAt||'').localeCompare(String(a.updatedAt||a.createdAt||''))).map((r,i)=>{
+      const title=r.title||r.car||r.vehicle||'(제목 없음)';
+      const region=r.region||'';
+      return `<div class="archive-item"><b>${i+1}. ${esc(title)}</b><div class="muted">${esc(recoveryStatusName(r.status))}${region?' · '+esc(region):''}</div></div>`;
+    }).join('') || '<div class="emptymsg">현재 dream_blog_v2 / posts에서 글을 찾지 못했습니다.</div>';
+  }catch(e){
+    sum.innerHTML='<b>검사 오류</b><br>'+esc(String(e&&e.message||e));
+  }
+}
+async function exportRecoveryData(){
+  if(!recoveryFound.length)return alert('먼저 기존 글 검사를 눌러주세요.');
+  const payload={recovery:true,version:'3.18',db:'dream_blog_v2',store:'posts',exportedAt:new Date().toISOString(),posts:recoveryFound};
+  const blob=new Blob([JSON.stringify(payload,null,2)],{type:'application/json'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='드림블로그_긴급복구백업_'+new Date().toISOString().slice(0,10)+'.json';a.click();
+  setTimeout(()=>URL.revokeObjectURL(a.href),1000);
+}
+document.getElementById('scanRecovery')?.addEventListener('click',scanRecoveryData);
+document.getElementById('exportRecovery')?.addEventListener('click',exportRecoveryData);
+
 </script>
 </body>
 </html>
