@@ -1,0 +1,146 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>드림 블로그 전체 복구 검사</title>
+<style>
+body{font-family:system-ui,-apple-system,"Noto Sans KR",sans-serif;background:#f4f7fb;color:#172033;margin:0}
+.wrap{max-width:850px;margin:auto;padding:16px}
+.card{background:#fff;border:1px solid #dbe3ef;border-radius:16px;padding:14px;margin:12px 0}
+button{border:0;border-radius:11px;padding:13px 16px;font-weight:800;background:#2563eb;color:white}
+pre{white-space:pre-wrap;word-break:break-all;background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:10px;max-height:500px;overflow:auto;font-size:12px}
+.ok{color:#047857;font-weight:800}.warn{color:#b45309;font-weight:800}
+h1{font-size:20px}.small{font-size:12px;color:#64748b;line-height:1.6}
+.hit{border-left:4px solid #f59e0b;padding-left:9px;margin:8px 0}
+</style>
+</head>
+<body><div class="wrap">
+<h1>🛟 드림 블로그 전체 복구 검사</h1>
+<div class="card">
+<div class="small">읽기 전용 검사입니다. IndexedDB, localStorage, sessionStorage, Cache Storage, Service Worker 등록 정보를 확인합니다. 데이터를 삭제·수정하지 않습니다.</div>
+<br><button id="scan">전체 검사 시작</button>
+<div id="summary"></div>
+</div>
+<div class="card"><h2>① IndexedDB 전체</h2><pre id="idb">검사 전</pre></div>
+<div class="card"><h2>② localStorage / sessionStorage</h2><pre id="ls">검사 전</pre></div>
+<div class="card"><h2>③ Cache Storage</h2><pre id="cache">검사 전</pre></div>
+<div class="card"><h2>④ Service Worker</h2><pre id="sw">검사 전</pre></div>
+<div class="card"><h2>⑤ 블로그 글 흔적 집중검색</h2><div id="hits">검사 전</div></div>
+</div>
+<script>
+const $=s=>document.querySelector(s);
+const keywords=['dream_blog','posts','posted','queue','draft','게시완료','게시대기','작성중','title','body','publishDate','naverUrl','quoteCta'];
+let corpus=[];
+
+function addCorpus(source,key,value){
+  let text='';
+  try{text=typeof value==='string'?value:JSON.stringify(value)}catch{text=String(value)}
+  corpus.push({source,key,text});
+}
+async function scanIDB(){
+  let out=[], total=0;
+  if(!indexedDB.databases){out.push('이 브라우저는 indexedDB.databases() 목록 기능을 지원하지 않습니다.');return out.join('\n')}
+  const dbs=await indexedDB.databases();
+  out.push(`DB 개수: ${dbs.length}`);
+  for(const info of dbs){
+    out.push(`\nDB: ${info.name}  v${info.version||''}`);
+    await new Promise(resolve=>{
+      const req=indexedDB.open(info.name);
+      req.onerror=()=>{out.push('  열기 실패');resolve()};
+      req.onsuccess=async()=>{
+        const db=req.result;
+        const stores=[...db.objectStoreNames];
+        out.push(`  stores: ${stores.join(', ')||'(없음)'}`);
+        for(const sn of stores){
+          await new Promise(done=>{
+            try{
+              const tx=db.transaction(sn,'readonly'), st=tx.objectStore(sn), r=st.getAll();
+              r.onsuccess=()=>{
+                const rows=r.result||[]; total+=rows.length;
+                out.push(`  - ${sn}: ${rows.length}건`);
+                rows.forEach((v,i)=>{
+                  addCorpus(`IndexedDB ${info.name}/${sn}`,String(i+1),v);
+                  let s='';try{s=JSON.stringify(v)}catch{s=String(v)}
+                  out.push(`    [${i+1}] ${s.slice(0,1500)}${s.length>1500?' …':''}`);
+                }); done();
+              };
+              r.onerror=()=>{out.push(`  - ${sn}: 읽기 실패`);done()};
+            }catch(e){out.push(`  - ${sn}: ${e}`);done()}
+          });
+        }
+        db.close();resolve();
+      };
+    });
+  }
+  out.unshift(`총 레코드: ${total}건`);
+  return out.join('\n');
+}
+function scanStorage(){
+  let out=[];
+  for(const [name,store] of [['localStorage',localStorage],['sessionStorage',sessionStorage]]){
+    out.push(`${name}: ${store.length}개`);
+    for(let i=0;i<store.length;i++){
+      const k=store.key(i),v=store.getItem(k)||'';
+      addCorpus(name,k,v);
+      out.push(`\n[${k}] (${v.length} chars)\n${v.slice(0,4000)}${v.length>4000?' …':''}`);
+    }
+    out.push('\n');
+  }
+  return out.join('\n');
+}
+async function scanCaches(){
+  if(!('caches' in window)) return 'Cache Storage 미지원';
+  const names=await caches.keys(),out=[`캐시 개수: ${names.length}`];
+  for(const n of names){
+    const c=await caches.open(n),reqs=await c.keys();
+    out.push(`\nCACHE: ${n} (${reqs.length}개)`);
+    for(const req of reqs){
+      out.push('  '+req.url);
+      addCorpus('Cache URL',n,req.url);
+      try{
+        const res=await c.match(req);
+        const ct=res?.headers.get('content-type')||'';
+        if(res && (/text|json|javascript|html/.test(ct))){
+          const text=await res.clone().text();
+          addCorpus(`Cache ${n}`,req.url,text);
+        }
+      }catch{}
+    }
+  }
+  return out.join('\n');
+}
+async function scanSW(){
+  if(!('serviceWorker' in navigator))return 'Service Worker 미지원';
+  const regs=await navigator.serviceWorker.getRegistrations();
+  const out=[`등록 개수: ${regs.length}`];
+  regs.forEach((r,i)=>{
+    out.push(`[${i+1}] scope=${r.scope}\n active=${r.active?.scriptURL||''}\n waiting=${r.waiting?.scriptURL||''}\n installing=${r.installing?.scriptURL||''}`);
+    addCorpus('ServiceWorker',r.scope,[r.active?.scriptURL,r.waiting?.scriptURL,r.installing?.scriptURL].join(' '));
+  });
+  return out.join('\n');
+}
+function renderHits(){
+  const box=$('#hits'); let hits=[];
+  for(const x of corpus){
+    const found=keywords.filter(k=>x.key.toLowerCase().includes(k.toLowerCase())||x.text.toLowerCase().includes(k.toLowerCase()));
+    if(found.length)hits.push({...x,found});
+  }
+  if(!hits.length){box.innerHTML='<p>블로그 게시글 관련 흔적을 찾지 못했습니다.</p>';return 0}
+  box.innerHTML=hits.map((x,i)=>`<div class="hit"><b>${i+1}. ${esc(x.source)} / ${esc(x.key)}</b><br><span class="small">일치: ${esc(x.found.join(', '))}</span><pre>${esc(x.text.slice(0,5000))}${x.text.length>5000?' …':''}</pre></div>`).join('');
+  return hits.length;
+}
+function esc(s){return String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]))}
+$('#scan').onclick=async()=>{
+  $('#scan').disabled=true; $('#summary').innerHTML='<p class="warn">검사 중…</p>'; corpus=[];
+  try{
+    $('#idb').textContent=await scanIDB();
+    $('#ls').textContent=scanStorage();
+    $('#cache').textContent=await scanCaches();
+    $('#sw').textContent=await scanSW();
+    const n=renderHits();
+    $('#summary').innerHTML=`<p class="ok">검사 완료 · 블로그 관련 흔적 ${n}개</p><div class="small">특히 ①에서 <b>dream_blog_v2 / posts</b>가 있는지 확인하세요.</div>`;
+  }catch(e){$('#summary').innerHTML='<p class="warn">검사 중 오류: '+esc(e)+'</p>'}
+  $('#scan').disabled=false;
+};
+</script></body></html>
