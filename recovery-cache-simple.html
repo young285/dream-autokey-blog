@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>블로그 캐시 간단 검사</title>
+<style>
+body{font-family:system-ui,-apple-system,sans-serif;background:#f4f7fb;color:#172033;margin:0}
+main{max-width:760px;margin:auto;padding:18px}
+.card{background:#fff;border:1px solid #dbe3ef;border-radius:16px;padding:16px;margin:12px 0}
+button{background:#2563eb;color:#fff;border:0;border-radius:12px;padding:14px 18px;font-size:17px;font-weight:800}
+.good{color:#047857;font-weight:900}.bad{color:#b91c1c;font-weight:900}
+.item{padding:10px 0;border-bottom:1px solid #e5e7eb;word-break:break-all}
+small{color:#64748b}
+</style>
+</head>
+<body><main>
+<h1>🛟 블로그 캐시 간단 검사</h1>
+<div class="card">
+<p>사진 Base64는 표시하지 않습니다. <b>Cache Storage의 이름과 파일 주소만</b> 읽기 전용으로 확인합니다.</p>
+<button id="go">캐시 검사 시작</button>
+<div id="result"></div>
+</div>
+<div class="card">
+<h2>캐시 목록</h2>
+<div id="list">검사 전</div>
+</div>
+</main>
+<script>
+const go=document.getElementById('go'), result=document.getElementById('result'), list=document.getElementById('list');
+go.onclick=async()=>{
+ go.disabled=true; result.innerHTML='<p>검사 중…</p>';
+ try{
+  if(!('caches' in window)){result.innerHTML='<p class="bad">이 브라우저는 Cache Storage를 지원하지 않습니다.</p>';return}
+  const names=await caches.keys();
+  let foundBlog=false, foundDreamBlogCache=false, html='';
+  for(const name of names){
+   const cache=await caches.open(name), reqs=await cache.keys();
+   const nameBlog=/dream[-_]?autokey[-_]?blog|dream_blog/i.test(name);
+   if(nameBlog) foundDreamBlogCache=true;
+   html+=`<div class="item"><b>CACHE: ${esc(name)}</b><br><small>${reqs.length}개 파일</small></div>`;
+   for(const r of reqs){
+    const isBlog=/\/dream-autokey-blog\//i.test(r.url);
+    if(isBlog) foundBlog=true;
+    html+=`<div class="item">${isBlog?'⭐ ':''}${esc(r.url)}</div>`;
+   }
+  }
+  list.innerHTML=html||'<p>저장된 캐시가 없습니다.</p>';
+  if(foundBlog||foundDreamBlogCache){
+    result.innerHTML='<p class="good">✅ dream-autokey-blog 관련 캐시 흔적이 있습니다.</p><p>아래 ⭐ 표시된 주소를 캡처해서 보내주세요.</p>';
+  }else{
+    result.innerHTML='<p class="bad">❌ 현재 Cache Storage에서 dream-autokey-blog 관련 캐시를 찾지 못했습니다.</p><p>아래 캐시 목록도 같이 캡처해서 보내주세요.</p>';
+  }
+ }catch(e){result.innerHTML='<p class="bad">검사 오류: '+esc(String(e))+'</p>'}
+ finally{go.disabled=false}
+};
+function esc(s){return String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]))}
+</script>
+</body></html>
