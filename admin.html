@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#071a3d">
-<meta name="app-version" content="3.18">
+<meta name="app-version" content="3.19-cloud">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icon-192.png">
 <title>드림 자동차키 블로그</title>
@@ -32,6 +32,8 @@
 .transfer-status{margin-top:10px;font-size:13px;font-weight:900;color:var(--ok)}
 @media(max-width:650px){.transfer-grid{grid-template-columns:1fr}.tabs{justify-content:flex-start;padding-left:2px;padding-right:8px}.tabs button{min-width:118px}}
 
+.cloudbar{max-width:860px;margin:8px auto 0;padding:0 10px}.cloudbox{display:flex;align-items:center;justify-content:space-between;gap:8px;background:#ecfdf5;border:1px solid #86efac;border-radius:12px;padding:9px 11px;font-size:12px}.cloudbox.off{background:#fff7ed;border-color:#fdba74}.cloudbox b{display:block}.cloudbox button{padding:7px 9px;font-size:11px}.authgate{position:fixed;inset:0;z-index:500;background:#071a3df2;display:flex;align-items:center;justify-content:center;padding:18px}.authcard{width:min(430px,100%);background:#fff;border-radius:20px;padding:20px;box-shadow:0 24px 70px #0006}.authcard h2{font-size:22px}.authcard .actions button{width:100%}.cloud-tools{margin-top:10px;border:1px solid #bfdbfe;background:#eff6ff;border-radius:12px;padding:11px}.cloud-tools button{width:100%;margin-top:8px}.cloud-error{color:#b91c1c;font-size:12px;font-weight:800;margin-top:8px;white-space:pre-wrap}
+
 
 /* v3.17 recovery: keep v3.14 functions/data intact; mobile tabs only */
 @media(max-width:650px){
@@ -42,7 +44,8 @@
 </style>
 </head>
 <body>
-<header class="top"><h1>🔑 드림 자동차키 블로그 <span style="font-size:11px;opacity:.75">관리전용</span></h1><small>원고 제작 · 보관 · 게시 달력 · 중복관리 · 무료견적 · 네이버 올리기 · 게시취소 · 견적전용페이지 · 관리전용 · v3.18</small></header>
+<header class="top"><h1>🔑 드림 자동차키 블로그 <span style="font-size:11px;opacity:.75">관리전용</span></h1><small>원고 제작 · 보관 · 게시 달력 · 중복관리 · 무료견적 · 네이버 올리기 · 게시취소 · 견적전용페이지 · 관리전용 · v3.19 Cloud</small></header>
+<div class="cloudbar"><div id="cloudBox" class="cloudbox off"><div><b id="cloudTitle">클라우드 연결 확인 중</b><span id="cloudText">잠시만 기다려 주세요.</span></div><button id="cloudLogout" class="secondary hidden" type="button">로그아웃</button></div></div>
 <main class="wrap">
 <nav class="tabs"><button class="active" data-tab="write">새글</button><button data-tab="complete">완성본</button><button data-tab="archive">보관함</button><button data-tab="calendar">📅 달력</button><button data-tab="transfer">📱 교체</button><button data-tab="recovery">🛟 복구</button></nav>
 
@@ -96,6 +99,7 @@
 
 
 <section id="transfer" class="panel">
+<div class="card"><h2>☁️ 공용 클라우드 저장</h2><div class="note">로그인한 모든 휴대폰·PC에서 같은 보관함을 사용합니다. 기존 휴대폰 자료는 아래 버튼을 눌러야만 복사되며, 클라우드에 이미 있는 글은 덮어쓰지 않습니다.</div><div class="cloud-tools"><b id="cloudToolStatus">연결 상태 확인 중</b><button type="button" id="cloudRefresh" class="secondary">🔄 클라우드 새로고침</button><button type="button" id="cloudMigrate" class="ok">⬆️ 이 휴대폰 기존 자료를 클라우드에 복사</button></div></div>
 <div class="card phone-transfer-card">
   <div class="transfer-hero">📱 휴대폰 교체 · 전체 이전</div>
   <div class="note">기존 휴대폰의 원고·보관함·게시일·사진·지역·전화번호 설정을 백업 파일 하나로 새 휴대폰에 옮길 수 있습니다.</div>
@@ -149,6 +153,8 @@
 
 </main>
 
+<div id="authGate" class="authgate hidden"><div class="authcard"><h2>☁️ 드림 블로그 로그인</h2><p class="note">Supabase에서 만든 앱 전용 이메일과 비밀번호로 로그인하세요. 로그인하면 휴대폰과 다른 기기에서 같은 보관함을 사용합니다.</p><label>이메일</label><input id="cloudEmail" type="email" autocomplete="username" placeholder="이메일"><label>비밀번호</label><input id="cloudPassword" type="password" autocomplete="current-password" placeholder="비밀번호"><div class="actions"><button id="cloudLogin" type="button">로그인</button></div><div id="cloudLoginError" class="cloud-error"></div></div></div>
+
 <div id="detailModal" class="modal hidden" onclick="closeModal()"><div class="modalbox" onclick="event.stopPropagation()"><div class="modalhead"><h2 id="modalTitle">상세</h2><button class="close" onclick="closeModal()">×</button></div><div id="modalBody"></div></div></div>
 <div id="publishModal" class="modal hidden" onclick="closePublishHelper()"><div class="modalbox" onclick="event.stopPropagation()"><div class="modalhead"><h2>🚀 네이버 블로그 올리기</h2><button class="close" onclick="closePublishHelper()">×</button></div>
 <div class="publish-warning">네이버는 외부 앱의 자동 글 발행을 공식 지원하지 않습니다. 이 화면은 제목·본문·태그·사진을 순서대로 준비해서 <b>마지막 발행만 직접</b> 누르게 도와주는 안전한 방식입니다.</div>
@@ -160,18 +166,26 @@
 <div class="publish-step" id="pubStep6"><b><span class="stepno">6</span>발행 후 기록</b><div class="note">네이버에서 발행한 뒤 돌아와 게시글 주소를 붙여넣으면 달력에 오늘 게시완료로 기록됩니다.</div><label>네이버 게시글 주소 (선택)</label><input id="publishNaverUrl" placeholder="https://blog.naver.com/..."><div class="actions"><button type="button" class="ok" onclick="finishNaverPublish()">✅ 게시완료로 저장</button></div></div>
 </div></div>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
 'use strict';
 const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)], uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,7), esc=v=>String(v??'').replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]));
 const DB_NAME='dream_blog_v2', DB_VER=1, STORE='posts';
-let db, posts=[], srcPhotos=[], marked=[], photoHashes=[], activeTab='write', calendarYM=new Date().toISOString().slice(0,7);
+const SUPABASE_URL='https://hsoolcglsnmvglmmtzvx.supabase.co';
+const SUPABASE_KEY='sb_publishable_Gjy-SW4ZSb1SNGggP2Prlw_6t_mDP8n';
+const cloud=window.supabase?.createClient(SUPABASE_URL,SUPABASE_KEY,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});
+let cloudUser=null,cloudReady=false,db, posts=[], srcPhotos=[], marked=[], photoHashes=[], activeTab='write', calendarYM=new Date().toISOString().slice(0,7);
 let settings=loadLocal('dream_blog_settings_v2',{business:'드림 자동차키',phone:'010-3004-0452',quoteText:'자동차키 무료견적 문의\n차량명 / 연식 / 현재 보유한 키 개수 / 지역을 알려주시면 작업 가능 여부와 견적을 안내해드립니다.',regions:['인천 송도','인천 청라','인천 부평','인천 남동구']});
 function loadLocal(k,d){try{return JSON.parse(localStorage.getItem(k)||JSON.stringify(d))}catch{return d}}
 function saveLocal(k,v){localStorage.setItem(k,JSON.stringify(v))}
 function openDB(){return new Promise((resolve,reject)=>{const r=indexedDB.open(DB_NAME,DB_VER);r.onupgradeneeded=()=>{const d=r.result;if(!d.objectStoreNames.contains(STORE))d.createObjectStore(STORE,{keyPath:'id'})};r.onsuccess=()=>{db=r.result;resolve(db)};r.onerror=()=>reject(r.error)})}
-function dbPut(p){return new Promise((ok,no)=>{const t=db.transaction(STORE,'readwrite'),s=t.objectStore(STORE),r=s.put(p);r.onsuccess=()=>ok();r.onerror=()=>no(r.error)})}
-function dbDelete(id){return new Promise((ok,no)=>{const t=db.transaction(STORE,'readwrite'),r=t.objectStore(STORE).delete(id);r.onsuccess=()=>ok();r.onerror=()=>no(r.error)})}
-function dbAll(){return new Promise((ok,no)=>{const t=db.transaction(STORE,'readonly'),r=t.objectStore(STORE).getAll();r.onsuccess=()=>ok(r.result||[]);r.onerror=()=>no(r.error)})}
+function localDbPut(p){return new Promise((ok,no)=>{const t=db.transaction(STORE,'readwrite'),s=t.objectStore(STORE),r=s.put(p);r.onsuccess=()=>ok();r.onerror=()=>no(r.error)})}
+function localDbDelete(id){return new Promise((ok,no)=>{const t=db.transaction(STORE,'readwrite'),r=t.objectStore(STORE).delete(id);r.onsuccess=()=>ok();r.onerror=()=>no(r.error)})}
+function localDbAll(){return new Promise((ok,no)=>{const t=db.transaction(STORE,'readonly'),r=t.objectStore(STORE).getAll();r.onsuccess=()=>ok(r.result||[]);r.onerror=()=>no(r.error)})}
+async function cloudPut(p){if(!cloudUser)return;const row={owner_id:cloudUser.id,id:p.id,data:p,created_at:p.createdAt||new Date().toISOString(),updated_at:p.updatedAt||new Date().toISOString()};const {error}=await cloud.from('blog_posts').upsert(row,{onConflict:'owner_id,id'});if(error)throw error}
+async function dbPut(p){await localDbPut(p);if(cloudUser)await cloudPut(p)}
+async function dbDelete(id){if(cloudUser){const {error}=await cloud.from('blog_posts').delete().eq('owner_id',cloudUser.id).eq('id',id);if(error)throw error}await localDbDelete(id)}
+async function dbAll(){if(!cloudUser)return localDbAll();const {data,error}=await cloud.from('blog_posts').select('data').eq('owner_id',cloudUser.id).order('updated_at',{ascending:false});if(error)throw error;return (data||[]).map(x=>x.data).filter(Boolean)}
 function localISO(){const d=new Date();return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`}
 function openTab(id){activeTab=id;$$('.tabs button').forEach(b=>b.classList.toggle('active',b.dataset.tab===id));$$('.panel').forEach(p=>p.classList.toggle('active',p.id===id));if(id==='archive')renderArchive();if(id==='calendar')renderCalendar();if(id==='regions')renderRegions();window.scrollTo({top:0,behavior:'smooth'})}
 window.openTab=openTab;$$('.tabs button').forEach(b=>b.onclick=()=>openTab(b.dataset.tab));
@@ -348,7 +362,7 @@ window.shareStatic=async(src,name)=>{try{const r=await fetch(src,{cache:'no-stor
 function copyPublicQuoteUrl(){return cp(new URL('./quote.html',location.href).href)}
 $('#rebuildPhotoDB')?.addEventListener('click',async()=>{const b=$('#rebuildPhotoDB');const old=b.textContent;b.disabled=true;b.textContent='재검사 중...';const n=await ensureSavedPhotoHashes();await checkPhotoDuplicates();renderPhotos();b.disabled=false;b.textContent=old;alert(`과거 원고 사진 중복DB를 다시 만들었습니다.${n?`\n${n}개 원고의 사진 지문을 복구했습니다.`:'\n기존 사진 지문은 정상입니다.'}`)});
 function currentPost(){applyBlogPreview(false);return {id:$('#editId').value||uid(),car:$('#car').value.trim(),year:$('#year').value.trim(),region:$('#region').value,work:$('#work').value.trim(),reason:$('#reason').value.trim(),equipment:$('#equipment').value.trim(),result:$('#result').value.trim(),memo:$('#memo').value.trim(),targetChars:targetChars(),status:$('#statusSelect').value,publishDate:$('#publishDate').value||'',naverUrl:$('#naverUrl').value.trim(),title:$('#title').value.trim(),body:$('#body').value.trim(),tags:$('#tags').value.trim(),quoteCta:$('#quoteCta').value.trim(),photos:[...srcPhotos],markedPhotos:[...marked],photoHashes:[...photoHashes],createdAt:new Date().toISOString(),updatedAt:new Date().toISOString()}}
-$('#savePost').onclick=async()=>{const old=posts.find(p=>p.id===$('#editId').value),p=currentPost();if(old)p.createdAt=old.createdAt;await dbPut(p);await reloadPosts();$('#editId').value=p.id;$('#writeStatus').textContent='원고를 저장했습니다.';renderAll()};
+$('#savePost').onclick=async()=>{const old=posts.find(p=>p.id===$('#editId').value),p=currentPost();if(old)p.createdAt=old.createdAt;$('#writeStatus').textContent='저장 중...';try{await dbPut(p);await reloadPosts();$('#editId').value=p.id;$('#writeStatus').textContent=cloudUser?'클라우드 저장 완료 · 보관함에서 확인하세요.':'이 휴대폰에 저장했습니다.';renderAll()}catch(e){$('#writeStatus').textContent='클라우드 저장 실패: '+(e.message||e);$('#writeStatus').classList.add('bad')}};
 $('#savePublishDate').onclick=async()=>{const id=$('#editId').value;if(!id){$('#publishDateStatus').textContent='먼저 보관함에서 수정할 글을 선택하세요.';return}const p=posts.find(x=>x.id===id);if(!p){$('#publishDateStatus').textContent='저장된 글을 찾지 못했습니다.';return}const d=$('#publishDate').value;if(!d){$('#publishDateStatus').textContent='게시일을 선택하세요.';return}p.publishDate=d;p.status=$('#statusSelect').value||p.status||'posted';p.updatedAt=new Date().toISOString();await dbPut(p);await reloadPosts();renderAll();$('#publishDateStatus').textContent=`게시일을 ${d}로 저장했습니다.`;$('#writeStatus').textContent=`게시일 수정 완료: ${d}`};
 function resetForm(){['editId','car','year','work','reason','result','memo','title','body','tags','naverUrl'].forEach(id=>$('#'+id).value='');$('#equipment').value='전용 장비';$('#region').value=settings.regions[0]||'';setPickerFromRegion($('#region').value);$('#statusSelect').value='queue';$('#publishDate').value='';$('#targetChars').value='1500';$('#customCharsBox').classList.add('hidden');srcPhotos=[];marked=[];photoHashes=[];renderPhotos();updateQuoteCta();updateChar();$('#dupBox').classList.remove('show');$('#photoDup').classList.remove('show')}
 $('#newPost').onclick=resetForm;
@@ -410,7 +424,7 @@ window.publishDownloadPhotos=()=>{if(!marked.length)return alert('먼저 전화�
 window.finishNaverPublish=async()=>{const url=$('#publishNaverUrl').value.trim();$('#naverUrl').value=url;$('#statusSelect').value='posted';if(!$('#publishDate').value)$('#publishDate').value=localISO();const old=posts.find(p=>p.id===$('#editId').value),p=currentPost();if(old)p.createdAt=old.createdAt;p.status='posted';p.publishDate=$('#publishDate').value||localISO();p.naverUrl=url;await dbPut(p);await reloadPosts();$('#editId').value=p.id;renderAll();markPublishStep(6);$('#writeStatus').textContent=`게시완료 기록: ${p.publishDate}`;setTimeout(()=>closePublishHelper(),500)};
 $('#naverPublish').onclick=openPublishHelper;
 $('#openSavedNaver')?.addEventListener('click',()=>{const u=$('#naverUrl').value.trim();if(!u)return alert('발행한 네이버 글 주소를 먼저 입력하세요.');if(!/^https?:\/\//i.test(u))return alert('네이버 글 주소를 확인하세요.');open(u,'_blank')});
-$('#saveSettings').onclick=()=>{settings.business=$('#settingBusiness').value.trim()||'드림 자동차키';settings.phone=$('#settingPhone').value.trim()||'010-3004-0452';settings.quoteText=$('#settingQuoteText').value.trim();saveLocal('dream_blog_settings_v2',settings);$('#phone').value=settings.phone;updateQuoteCta();$('#settingsStatus').textContent='설정을 저장했습니다.'};
+$('#saveSettings').onclick=async()=>{settings.business=$('#settingBusiness').value.trim()||'드림 자동차키';settings.phone=$('#settingPhone').value.trim()||'010-3004-0452';settings.quoteText=$('#settingQuoteText').value.trim();saveLocal('dream_blog_settings_v2',settings);try{if(cloudUser){const {error}=await cloud.from('blog_settings').upsert({owner_id:cloudUser.id,data:settings,updated_at:new Date().toISOString()},{onConflict:'owner_id'});if(error)throw error}$('#phone').value=settings.phone;updateQuoteCta();$('#settingsStatus').textContent=cloudUser?'클라우드 설정을 저장했습니다.':'이 휴대폰에 설정을 저장했습니다.'}catch(e){$('#settingsStatus').textContent='설정 저장 실패: '+(e.message||e)}};
 function downloadBlob(blob,name){const a=document.createElement('a'),u=URL.createObjectURL(blob);a.href=u;a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(u),1000)}
 $('#exportData').onclick=()=>downloadBlob(new Blob([JSON.stringify({version:'2.1',exportedAt:new Date().toISOString(),settings,posts},null,2)],{type:'application/json'}),'드림블로그_전체백업.json');$('#importData').onclick=()=>$('#importFile').click();$('#importFile').onchange=e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=async()=>{try{const d=JSON.parse(r.result);if(!Array.isArray(d.posts))throw Error();settings={...settings,...(d.settings||{})};saveLocal('dream_blog_settings_v2',settings);for(const p of d.posts)await dbPut(p);await reloadPosts();migrateOldQuoteLinks();loadSettingsUi();renderAll();alert('복원했습니다.')}catch{alert('백업 파일을 확인하세요.')}};r.readAsText(f);e.target.value=''};
 
@@ -471,7 +485,31 @@ function syncRegion(){const vals=[document.getElementById('sido')?.value,documen
 ['sido','sigungu','eupmyeondong','regionDirect'].forEach(id=>document.getElementById(id)?.addEventListener('input',syncRegion));
 window.copyPreviewBlock=i=>{const el=document.querySelector(`.blog-text-edit[data-block="${i}"]`);if(el)cp(indentFirstSentence(el.innerText))};
 window.downloadPreviewPhoto=i=>{const a=marked.length===srcPhotos.length&&marked.length?marked:srcPhotos;if(!a[i])return;const x=document.createElement('a');x.href=a[i];x.download=`드림블로그_사진_${String(i+1).padStart(2,'0')}.jpg`;x.click()};
-async function init(){await openDB();await migrateV1();await reloadPosts();await ensureSavedPhotoHashes();migrateOldQuoteLinks();loadSettingsUi();resetForm();$('#publishDate').value='';renderAll();if('serviceWorker'in navigator)navigator.serviceWorker.register('./service-worker.js').catch(()=>{})}
+function setCloudUi(message=''){
+  const box=$('#cloudBox'),title=$('#cloudTitle'),txt=$('#cloudText'),logout=$('#cloudLogout'),tool=$('#cloudToolStatus');
+  if(cloudUser){box?.classList.remove('off');title.textContent='☁️ 클라우드 연결됨';txt.textContent=cloudUser.email||'로그인 완료';logout?.classList.remove('hidden');if(tool)tool.textContent=message||`클라우드 보관함 ${posts.length}건`}
+  else{box?.classList.add('off');title.textContent='클라우드 로그인이 필요합니다';txt.textContent='로그인하면 모든 기기에서 같은 보관함을 사용합니다.';logout?.classList.add('hidden');if(tool)tool.textContent=message||'로그인 필요'}
+}
+async function loadCloudSettings(){if(!cloudUser)return;const {data,error}=await cloud.from('blog_settings').select('data').eq('owner_id',cloudUser.id).maybeSingle();if(error)throw error;if(data?.data){settings={...settings,...data.data};saveLocal('dream_blog_settings_v2',settings);loadSettingsUi()}}
+async function enterCloud(user){cloudUser=user;$('#authGate')?.classList.add('hidden');await loadCloudSettings();await reloadPosts();await ensureSavedPhotoHashes();resetForm();renderAll();setCloudUi()}
+async function initCloud(){
+  if(!cloud){$('#authGate')?.classList.remove('hidden');$('#cloudLoginError').textContent='클라우드 프로그램을 불러오지 못했습니다. 인터넷 연결을 확인하세요.';setCloudUi('연결 실패');return}
+  const {data,error}=await cloud.auth.getSession();if(error)console.warn(error);
+  if(data?.session?.user){await enterCloud(data.session.user)}else{$('#authGate')?.classList.remove('hidden');setCloudUi()}
+  cloudReady=true;
+}
+$('#cloudLogin')?.addEventListener('click',async()=>{const email=$('#cloudEmail').value.trim(),password=$('#cloudPassword').value,err=$('#cloudLoginError');err.textContent='';if(!email||!password){err.textContent='이메일과 비밀번호를 입력하세요.';return}$('#cloudLogin').disabled=true;$('#cloudLogin').textContent='로그인 중...';try{const {data,error}=await cloud.auth.signInWithPassword({email,password});if(error)throw error;await enterCloud(data.user)}catch(e){err.textContent='로그인 실패: 이메일과 비밀번호를 확인하세요.'}finally{$('#cloudLogin').disabled=false;$('#cloudLogin').textContent='로그인'}});
+$('#cloudPassword')?.addEventListener('keydown',e=>{if(e.key==='Enter')$('#cloudLogin')?.click()});
+$('#cloudLogout')?.addEventListener('click',async()=>{await cloud.auth.signOut();cloudUser=null;posts=await localDbAll();renderAll();setCloudUi();$('#authGate')?.classList.remove('hidden')});
+$('#cloudRefresh')?.addEventListener('click',async()=>{if(!cloudUser)return $('#authGate')?.classList.remove('hidden');setCloudUi('새로고침 중...');try{await reloadPosts();renderAll();setCloudUi(`새로고침 완료 · ${posts.length}건`)}catch(e){setCloudUi('새로고침 실패: '+(e.message||e))}});
+$('#cloudMigrate')?.addEventListener('click',async()=>{
+  if(!cloudUser)return $('#authGate')?.classList.remove('hidden');
+  const local=await localDbAll();if(!local.length)return setCloudUi('이 휴대폰에서 복사할 기존 글이 없습니다.');
+  if(!confirm(`이 휴대폰의 기존 원고 ${local.length}건을 클라우드에 복사할까요?\n\n클라우드에 같은 글이 있으면 건너뛰며 삭제하거나 덮어쓰지 않습니다.`))return;
+  setCloudUi(`기존 자료 확인 중 · ${local.length}건`);
+  try{const {data,error}=await cloud.from('blog_posts').select('id').eq('owner_id',cloudUser.id);if(error)throw error;const exists=new Set((data||[]).map(x=>x.id));let copied=0,skipped=0;for(const p of local){if(exists.has(p.id)){skipped++;continue}await cloudPut(p);copied++}await reloadPosts();renderAll();setCloudUi(`복사 완료 · 새로 ${copied}건 · 기존 ${skipped}건 유지`);alert(`클라우드 복사 완료\n새로 복사 ${copied}건\n기존 글 유지 ${skipped}건`)}catch(e){setCloudUi('복사 실패: '+(e.message||e));alert('클라우드 복사에 실패했습니다. 기존 휴대폰 자료는 그대로 유지됩니다.')}
+});
+async function init(){await openDB();await migrateV1();posts=(await localDbAll()).sort((a,b)=>(b.updatedAt||'').localeCompare(a.updatedAt||''));migrateOldQuoteLinks();loadSettingsUi();resetForm();$('#publishDate').value='';renderAll();await initCloud();if('serviceWorker'in navigator)navigator.serviceWorker.register('./service-worker.js').catch(()=>{})}
 init();
 
 // v3.7: 완성본을 별도 네이버형 편집 화면으로 이동
