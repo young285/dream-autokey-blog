@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>드림블로그 안전 복구</title>
+<style>body{font-family:system-ui,sans-serif;background:#f1f5f9;color:#172033;padding:18px;max-width:720px;margin:auto}section{background:white;padding:18px;border-radius:15px;margin:14px 0}button{border:0;background:#047857;color:white;padding:15px;border-radius:11px;font-size:16px;font-weight:700;margin:5px}button:disabled{background:#94a3b8}#result{white-space:pre-wrap;overflow-wrap:anywhere}small{color:#64748b}</style></head><body>
+<h2>🛟 드림블로그 안전 복구</h2><section><b>읽기 전용 검사</b><p>이 페이지는 데이터를 삭제하거나 덮어쓰지 않습니다. 블로그 원고가 저장된 IndexedDB와 관련 localStorage만 확인합니다.</p>
+<button id="scan">기존 원고 검사</button><button id="backup" disabled>발견한 원고 백업</button><div id="result">검사 전</div></section>
+<section><b>주의</b><p>블로그를 사용하던 <strong>동일한 브라우저</strong>에서 GitHub Pages 주소로 열어야 기존 저장소에 접근할 수 있습니다. 파일을 휴대폰에서 직접 열면 저장소가 달라집니다.</p><small>복구가 끝날 때까지 앱 삭제·브라우저 데이터 삭제·클라우드 덮어쓰기를 하지 마세요.</small></section>
+<script>
+'use strict';
+let found=[];
+const $=id=>document.getElementById(id);
+const names=['dream_blog_v2','dream_blog','dream_autokey_blog','dream_blog_v1'];
+function readDb(name){return new Promise(resolve=>{
+  let finished=false;const done=x=>{if(!finished){finished=true;resolve(x)}};
+  let req;
+  try{req=indexedDB.open(name)}catch(e){done({name,error:String(e)});return}
+  req.onerror=()=>done({name,error:String(req.error)});
+  req.onblocked=()=>done({name,error:'다른 탭에서 데이터베이스 사용 중'});
+  req.onupgradeneeded=e=>{ // Newly-created empty database: abort; never create/modify it.
+    try{e.target.transaction.abort()}catch(_){}
+    done({name,absent:true});
+  };
+  req.onsuccess=()=>{
+    const db=req.result,stores=Array.from(db.objectStoreNames),records=[];
+    if(!stores.length){db.close();done({name,stores,records});return}
+    let pending=stores.length;
+    for(const store of stores){
+      try{
+        const tx=db.transaction(store,'readonly'),r=tx.objectStore(store).getAll();
+        r.onsuccess=()=>{for(const item of r.result||[])records.push({database:name,store,data:item});if(!--pending){db.close();done({name,stores,records})}};
+        r.onerror=()=>{if(!--pending){db.close();done({name,stores,records})}};
+      }catch(e){if(!--pending){db.close();done({name,stores,records})}}
+    }
+  };
+})}
+$('scan').onclick=async()=>{
+ $('result').textContent='검사 중...';$('backup').disabled=true;found=[];
+ let lines=[];
+ for(const name of names){
+   const x=await readDb(name);
+   if(x.absent)continue;
+   if(x.error){lines.push(name+': '+x.error);continue}
+   lines.push(name+': '+(x.records||[]).length+'개 레코드 ('+(x.stores||[]).join(', ')+')');
+   for(const rec of x.records||[]){
+     const d=rec.data||{};
+     if(rec.store==='posts'||(typeof d==='object'&&(d.title||d.body||d.car)&&('status'in d||'photos'in d)))found.push(rec);
+   }
+ }
+ const ls=[];
+ for(let i=0;i<localStorage.length;i++){
+  const k=localStorage.key(i);
+  if(/dream.*blog|blog.*dream/i.test(k)){const v=localStorage.getItem(k);ls.push({key:k,value:v});lines.push('localStorage '+k+': '+v.length+'자')}
+ }
+ window._backup={found,localStorage:ls,scannedAt:new Date().toISOString(),source:location.href};
+ lines.push('블로그 원고 후보: '+found.length+'건');
+ if(found.length)lines.push(...found.slice(0,30).map((r,i)=>`${i+1}. ${String(r.data.title||r.data.car||'제목 없음').slice(0,80)}`));
+ $('result').textContent=lines.join('\n')||'기록 없음';
+ $('backup').disabled=!(found.length||ls.length);
+};
+$('backup').onclick=()=>{
+ if(!window._backup)return;
+ const blob=new Blob([JSON.stringify(window._backup,null,2)],{type:'application/json'});
+ const a=document.createElement('a');a.href=URL.createObjectURL(blob);
+ a.download='드림블로그_안전백업_'+new Date().toISOString().slice(0,10)+'.json';
+ document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),10000);
+};
+</script></body></html>
