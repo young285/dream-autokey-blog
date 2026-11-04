@@ -251,7 +251,9 @@ function externalRecords(records){
   }));
 }
 async function migrateOld(){
-  if(localStorage.getItem(MIGRATED_KEY)==='1')return {copied:0, locked:true};
+  const existing=await localAll();
+  if(localStorage.getItem(MIGRATED_KEY)==='1'&&existing.length)return {copied:0, locked:true};
+  if(!existing.length)localStorage.removeItem(MIGRATED_KEY);
   try{
     const {records}=await scanLegacySources();
     const applied=await applyRecovered(externalRecords(records));
