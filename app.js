@@ -74,59 +74,238 @@ async function refreshPosts(){
   posts=(await localAll()).sort((a,b)=>String(b.updatedAt||'').localeCompare(String(a.updatedAt||'')));
 }
 
-function openNamed(name){
-  return new Promise(resolve=>{
-    if(!indexedDB.databases){resolve(null);return;}
-    indexedDB.databases().then(list=>{
-      if(!list.some(d=>d.name===name)){resolve(null);return;}
-      const r=indexedDB.open(name);
-      r.onsuccess=()=>resolve(r.result);
-      r.onerror=()=>resolve(null);
-    }).catch(()=>resolve(null));
+const LEGACY_DB_NAMES=['dream_blog_v2','dream_blog_rescue_v4','dream_blog_rescue','dream_blog','dream_blog_main_v1'];
+
+function looksLikePost(value){
+  if(!value||typeof value!=='object'||Array.isArray(value))return false;
+  if(value.id==null||String(value.id).trim()==='')return false;
+  return ['title','body','car'].some(key=>typeof value[key]==='string'&&value[key].trim());
+}
+function photoList(value){
+  if(!Array.isArray(value))return [];
+  return value.map(item=>{
+    if(typeof item==='string')return item;
+    if(item&&typeof item==='object')return item.dataUrl||item.src||item.url||'';
+    return '';
+  }).filter(Boolean);
+}
+function normalizeIncomingPost(value){
+  if(!looksLikePost(value))return null;
+  return {
+    ...value,
+    id:value.id,
+    title:value.title||'',
+    body:value.body||'',
+    car:value.car||'',
+    photos:photoList(value.photos),
+    markedPhotos:photoList(value.markedPhotos),
+    photoHashes:Array.isArray(value.photoHashes)?value.photoHashes.map(hash=>String(hash||'')):[],
+    quoteCta:typeof value.quoteCta==='string'?value.quoteCta:''
+  };
+}
+function postStamp(post){return String(post?.updatedAt||post?.createdAt||'');}
+function parseJsonLoose(raw){
+  if(typeof raw!=='string')return raw;
+  try{
+    const once=JSON.parse(raw);
+    if(typeof once==='string'){try{return JSON.parse(once);}catch{return once;}}
+    return once;
+  }catch{return null;}
+}
+function collectPosts(value, into, source, depth=0){
+  if(value==null||depth>4)return;
+  if(Array.isArray(value)){
+    if(value.some(looksLikePost)){
+      value.forEach(item=>{
+        const post=normalizeIncomingPost(item);
+        if(post)into.push({post, source});
+      });
+      return;
+    }
+    value.forEach(item=>collectPosts(item, into, source, depth+1));
+    return;
+  }
+  if(typeof value!=='object')return;
+  const post=normalizeIncomingPost(value);
+  if(post){into.push({post, source});return;}
+  ['posts','data','items','rows'].forEach(key=>{
+    if(value[key]!=null)collectPosts(value[key], into, source, depth+1);
   });
 }
+function dedupeHits(hits){
+  const map=new Map();
+  hits.forEach(hit=>{
+    const id=String(hit.post.id);
+    const prev=map.get(id);
+    if(!prev){map.set(id,{post:hit.post, sources:[hit.source]});return;}
+    if(!prev.sources.includes(hit.source))prev.sources.push(hit.source);
+    const prevStamp=postStamp(prev.post);
+    const nextStamp=postStamp(hit.post);
+    const richer=photoList(hit.post.photos).length>photoList(prev.post.photos).length;
+    if(nextStamp>prevStamp||(nextStamp===prevStamp&&richer))prev.post=hit.post;
+  });
+  return [...map.values()];
+}
+function isCurrentDbSource(source){return source.startsWith(`IndexedDB ${DB_NAME}/`);}
 function getAllStore(database, store){
   return new Promise(resolve=>{
     try{
       if(!database.objectStoreNames.contains(store)){resolve([]);return;}
       const tx=database.transaction(store,'readonly');
-      const q=tx.objectStore(store).getAll();
-      q.onsuccess=()=>resolve(q.result||[]);
-      q.onerror=()=>resolve([]);
+      const request=tx.objectStore(store).getAll();
+      let rows=[];
+      request.onsuccess=()=>{rows=request.result||[];};
+      tx.oncomplete=()=>resolve(rows);
+      tx.onerror=()=>resolve(rows);
+      tx.onabort=()=>resolve(rows);
     }catch{resolve([]);}
   });
 }
-function getKey(database, store, key){
+function openIfExists(name){
   return new Promise(resolve=>{
-    try{
-      if(!database.objectStoreNames.contains(store)){resolve(null);return;}
-      const tx=database.transaction(store,'readonly');
-      const q=tx.objectStore(store).get(key);
-      q.onsuccess=()=>resolve(q.result||null);
-      q.onerror=()=>resolve(null);
-    }catch{resolve(null);}
+    let settled=false;
+    const done=value=>{if(!settled){settled=true;resolve(value);}};
+    let created=false;
+    let request;
+    try{request=indexedDB.open(name);}catch{done(null);return;}
+    request.onupgradeneeded=()=>{
+      created=true;
+      try{request.transaction.abort();}catch{/* already aborting */}
+    };
+    request.onsuccess=()=>{
+      const database=request.result;
+      if(created){
+        try{database.close();}catch{/* ignore */}
+        try{indexedDB.deleteDatabase(name);}catch{/* ignore */}
+        done(null);
+        return;
+      }
+      done(database);
+    };
+    request.onerror=()=>{
+      if(created){try{indexedDB.deleteDatabase(name);}catch{/* ignore */}}
+      done(null);
+    };
+    request.onblocked=()=>done(null);
   });
 }
-async function migrateOld(){
-  if(localStorage.getItem(MIGRATED_KEY)==='1')return;
+async function databaseNamesToScan(){
+  try{
+    if(typeof indexedDB.databases==='function'){
+      const listed=await indexedDB.databases();
+      return {listed:true, names:[...new Set((listed||[]).map(info=>info&&info.name).filter(Boolean))]};
+    }
+  }catch{/* use the known names below */}
+  return {listed:false, names:[...LEGACY_DB_NAMES]};
+}
+async function scanLegacySources(){
+  const hits=[];
+  const {names}=await databaseNamesToScan();
+  for(const name of names){
+    let database=null;
+    let openedSeparately=false;
+    try{
+      if(name===DB_NAME&&db)database=db;
+      else database=await openIfExists(name);
+      if(!database)continue;
+      openedSeparately=database!==db;
+      const stores=[...database.objectStoreNames];
+      for(const store of stores){
+        const rows=await getAllStore(database, store);
+        const source=`IndexedDB ${name}/${store}`;
+        rows.forEach(row=>collectPosts(row, hits, source));
+      }
+    }catch{/* one unreadable database must not stop the rest */}
+    finally{
+      if(openedSeparately&&database){try{database.close();}catch{/* ignore */}}
+    }
+  }
+  try{
+    for(let i=0;i<localStorage.length;i++){
+      const key=localStorage.key(i);
+      if(!key)continue;
+      if(key!=='dream_blog_rescue_manager_v1'&&!key.includes('dream_blog'))continue;
+      try{collectPosts(parseJsonLoose(localStorage.getItem(key)), hits, `localStorage ${key}`);}
+      catch{/* skip this key */}
+    }
+  }catch{/* localStorage unavailable */}
+  return {records:dedupeHits(hits)};
+}
+async function applyRecovered(records){
   const existing=await localAll();
-  if(existing.length){localStorage.setItem(MIGRATED_KEY,'1');return;}
-  const incoming=[];
-  const v2=await openNamed('dream_blog_v2');
-  if(v2){incoming.push(...await getAllStore(v2,'posts'));v2.close();}
-  const rescue=await openNamed('dream_blog_rescue_v4');
-  if(rescue){
-    const blob=await getKey(rescue,'data','posts');
-    if(Array.isArray(blob))incoming.push(...blob);
-    rescue.close();
+  const byId=new Map(existing.map(post=>[String(post.id), post]));
+  let added=0, replaced=0, skipped=0;
+  for(const record of records){
+    const post=record.post;
+    const old=byId.get(String(post.id));
+    if(!old){await localPut(post);byId.set(String(post.id), post);added++;}
+    else if(postStamp(post)>postStamp(old)){await localPut({...old, ...post, createdAt:old.createdAt||post.createdAt});replaced++;}
+    else skipped++;
   }
-  const seen=new Set();
-  for(const p of incoming){
-    if(!p||typeof p!=='object'||!p.id||seen.has(p.id))continue;
-    seen.add(p.id);
-    await localPut(p);
+  return {added, replaced, skipped};
+}
+function externalRecords(records){
+  return records.filter(record=>record.sources.some(source=>!isCurrentDbSource(source))).map(record=>({
+    post:record.post,
+    sources:record.sources.filter(source=>!isCurrentDbSource(source))
+  }));
+}
+async function migrateOld(){
+  const existing=await localAll();
+  if(localStorage.getItem(MIGRATED_KEY)==='1'&&existing.length)return {copied:0, locked:true};
+  if(!existing.length)localStorage.removeItem(MIGRATED_KEY);
+  try{
+    const {records}=await scanLegacySources();
+    const applied=await applyRecovered(externalRecords(records));
+    const copied=applied.added+applied.replaced;
+    if(copied>0)localStorage.setItem(MIGRATED_KEY,'1');
+    return {copied, ...applied};
+  }catch{
+    return {copied:0, failed:true};
   }
-  localStorage.setItem(MIGRATED_KEY,'1');
+}
+function recoverySummary(records){
+  const photos=records.reduce((sum, record)=>sum+(record.post.photos||[]).length, 0);
+  const sources=[...new Set(records.flatMap(record=>record.sources))];
+  return {photos, sources};
+}
+async function findOldPosts(){
+  const box=$('recoveryResult');
+  box.textContent='이 브라우저 안을 살펴보는 중입니다…';
+  let records=[];
+  try{
+    const scanned=await scanLegacySources();
+    records=externalRecords(scanned.records);
+  }catch{
+    box.textContent='찾기에 실패했습니다. 잠시 후 다시 눌러 주세요. 이번 실패로 다음 찾기가 막히지는 않습니다.';
+    return;
+  }
+  const scope='이 휴대폰의 이 브라우저 안만 살펴봤습니다.';
+  if(!records.length){
+    box.textContent=`이전 원고를 찾지 못했습니다. ${scope} 예전에 받은 JSON 파일은 아래 불러오기로 넣을 수 있습니다.`;
+    return;
+  }
+  const {photos, sources}=recoverySummary(records);
+  const found=`원고 ${records.length}건 · 사진 ${photos}장 · ${sources.join(', ')}. ${scope}`;
+  box.textContent=found;
+  if(!confirm(`이전 원고를 찾았습니다.\n${found}\n앱에 넣을까요?`)){
+    box.textContent=`넣지 않았습니다. ${found}`;
+    return;
+  }
+  try{
+    const applied=await applyRecovered(records);
+    if(applied.added+applied.replaced>0)localStorage.setItem(MIGRATED_KEY,'1');
+    await refreshPosts();
+    renderList();
+    updateBanner();
+    box.textContent=`추가 ${applied.added}건 · 교체 ${applied.replaced}건 · 건너뜀 ${applied.skipped}건. ${found}`;
+    if(applied.added+applied.replaced>0){
+      $('migrationNote').textContent=`이 휴대폰에 남아 있던 이전 원고 ${applied.added+applied.replaced}건을 불러왔습니다.`;
+      $('migrationNote').classList.remove('hidden');
+    }
+  }catch(error){
+    box.textContent='넣기에 실패했습니다. '+(error.message||'')+' 다시 찾아도 됩니다.';
+  }
 }
 
 function cityToken(sido, sigungu){
@@ -884,18 +1063,19 @@ async function importBackupFile(file){
     applySettingsToUi();
   }
   let added=0, replaced=0, skipped=0;
-  for(const p of incoming){
-    if(!p||typeof p!=='object'||!p.id){skipped++;continue;}
-    const old=posts.find(x=>x.id===p.id);
-    if(!old){await localPut(p);added++;}
-    else if(String(p.updatedAt||'')>String(old.updatedAt||'')){await localPut(p);replaced++;}
+  for(const raw of incoming){
+    const post=normalizeIncomingPost(raw);
+    if(!post){skipped++;continue;}
+    const old=posts.find(item=>String(item.id)===String(post.id));
+    if(!old){await localPut(post);added++;}
+    else if(postStamp(post)>postStamp(old)){await localPut({...old, ...post, createdAt:old.createdAt||post.createdAt});replaced++;}
     else skipped++;
   }
   await refreshPosts();
   renderList();
   renderCalendar();
   updateBanner();
-  $('importResult').textContent=`추가 ${added}건 · 갱신 ${replaced}건 · 건너뜀 ${skipped}건`;
+  $('importResult').textContent=`추가 ${added}건 · 교체 ${replaced}건 · 건너뜀 ${skipped}건`;
 }
 
 async function ensureSavedPhotoHashes(){
@@ -1065,6 +1245,7 @@ function bind(){
     localStorage.setItem(SNOOZE_KEY, String(Date.now()+86400000));
     updateBanner();
   };
+  $('findOldPosts').onclick=()=>findOldPosts();
   $('import').onclick=()=>$('importFile').click();
   $('importFile').addEventListener('change', async e=>{
     const file=e.target.files&&e.target.files[0];
@@ -1144,8 +1325,12 @@ async function init(){
   calendarMonth=todayISO().slice(0,7);
   try{
     await openDB();
-    await migrateOld();
+    const migrated=await migrateOld();
     await refreshPosts();
+    if(migrated.copied>0){
+      $('migrationNote').textContent=`이 휴대폰에 남아 있던 이전 원고 ${migrated.copied}건을 불러왔습니다.`;
+      $('migrationNote').classList.remove('hidden');
+    }
   }catch(e){
     alert('이 브라우저에서 저장소를 열지 못했습니다. '+ (e.message||''));
   }
