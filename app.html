@@ -1,0 +1,294 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#071a3d">
+<title>드림 자동차키 블로그</title>
+<meta name="description" content="드림 자동차키 네이버 블로그 원고 작성·보관·달력. 데이터는 이 브라우저에만 저장됩니다.">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<style>
+:root{--navy:#071a3d;--blue:#1d4ed8;--line:#dbe3ef;--muted:#64748b;--bg:#f4f7fb;--ok:#047857;--warn:#b45309;--bad:#b91c1c}
+*{box-sizing:border-box}
+body{margin:0;font-family:system-ui,-apple-system,"Noto Sans KR",sans-serif;background:var(--bg);color:#172033;line-height:1.5}
+header{background:linear-gradient(135deg,#071a3d,#123c78);color:#fff;padding:16px 16px 12px}
+header h1{font-size:20px;margin:0 0 4px}
+header p{margin:0;font-size:13px;opacity:.88}
+.top-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+.top-actions a,.top-actions button{display:inline-flex;align-items:center;justify-content:center;text-decoration:none;border-radius:12px;padding:10px 12px;font-weight:800;border:0;cursor:pointer}
+a.quote{background:#ff9700;color:#fff}
+a.call{background:#059669;color:#fff}
+main{max-width:880px;margin:auto;padding:12px 12px 48px}
+nav{display:flex;gap:6px;flex-wrap:wrap;position:sticky;top:0;z-index:20;background:linear-gradient(var(--bg) 80%,transparent);padding:8px 0 10px}
+nav button{border:1px solid var(--line);background:#fff;color:#334155;border-radius:12px;padding:10px 12px;font-weight:800;cursor:pointer}
+nav button.active{background:var(--blue);color:#fff;border-color:var(--blue)}
+.card{background:#fff;border:1px solid var(--line);border-radius:16px;padding:14px;margin:0 0 12px;box-shadow:0 2px 8px #0000000a}
+h2{font-size:18px;margin:0 0 10px}
+label{display:block;font-weight:800;font-size:13px;margin-top:8px}
+input,textarea,select{width:100%;font:inherit;padding:11px;border:1px solid #cbd5e1;border-radius:10px;background:#fff;margin-top:4px}
+input[type=checkbox]{width:auto;padding:0;vertical-align:middle}
+textarea{min-height:180px;resize:vertical}
+button{border:0;border-radius:10px;background:var(--blue);color:#fff;font-weight:800;padding:11px 14px;cursor:pointer}
+button.secondary{background:#e8eef8;color:#1e3a5f}
+button.danger{background:#fee2e2;color:var(--bad)}
+button.ok{background:#059669;color:#fff}
+button.orange{background:#ff9700;color:#fff}
+button:disabled{opacity:.55}
+.actions,.photo-tools,.top-actions{display:flex;flex-wrap:wrap;gap:8px}
+.actions{margin-top:12px}
+.muted{color:var(--muted);font-size:13px}
+.hidden{display:none!important}
+.banner{background:#fff7ed;border:1px solid #fdba74;border-radius:14px;padding:12px;margin-bottom:12px}
+.banner p{margin:0 0 8px}
+.photos{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:8px}
+.photos img{width:100%;height:110px;object-fit:cover;border-radius:10px;background:#f8fafc}
+.photos figure{margin:0}
+.photos figcaption{font-size:11px;color:#475569;margin-top:4px}
+.bodytext{white-space:pre-wrap;line-height:1.75;overflow-wrap:anywhere}
+.title-option{display:flex;gap:8px;align-items:center;margin-top:6px}
+.title-pick{flex:1;text-align:left;background:#f8fafc;color:#172033;border:1px solid var(--line)}
+.signal{font-size:12px;font-weight:900;white-space:nowrap}
+.signal.ok{color:var(--ok)}.signal.warn{color:var(--warn)}.signal.bad{color:var(--bad)}
+.dupbox{border-radius:12px;padding:10px;margin-top:8px;font-size:14px}
+.dupbox.ok{background:#f0fdf4;color:#166534;border:1px solid #86efac}
+.dupbox.bad{background:#fef2f2;color:#991b1b;border:1px solid #fecaca}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.cal-head{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.cal-head h2{margin:0}
+.cal-grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:2px;background:#e2e8f0;border:1px solid #e2e8f0;margin-top:10px}
+.cal-dayname{text-align:center;background:#fff;color:#64748b;font-size:12px;font-weight:800;padding:8px 0}
+.cal-cell{background:#fff;min-height:78px;padding:4px;cursor:pointer}
+.cal-cell.empty{background:#f8fafc;cursor:default}
+.cal-cell.today{outline:2px solid #2563eb;outline-offset:-2px}
+.cal-num{font-weight:800;font-size:13px}
+.cal-item{display:block;margin-top:3px;background:#e0ecff;color:#1e3a8a;border-radius:4px;padding:2px 3px;font-size:10px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+.cal-item.posted{background:#dcfce7;color:#166534}
+.cal-item.draft,.cal-item.archived{background:#ffedd5;color:#9a3412}
+.post-title{font-size:17px}
+.helper{background:#f8fbff;border:1px solid #dbeafe;border-radius:14px;padding:12px;margin-top:8px}
+.helper ol{margin:8px 0;padding-left:18px}
+a.inline{color:#1d4ed8;word-break:break-all}
+@media(max-width:640px){.grid2{grid-template-columns:1fr}.cal-cell{min-height:64px}}
+</style>
+</head>
+<body>
+<header>
+  <h1>드림 자동차키 블로그</h1>
+  <p>인천 청라·송도 · 원고 작성, 보관, 달력. 로그인 없이 이 휴대폰에 저장됩니다.</p>
+  <div class="top-actions">
+    <a class="quote" id="openQuote" href="quote.html" target="_blank" rel="noopener">무료견적 페이지</a>
+    <a class="call" id="callBtn" href="tel:01030040452">전화 <span id="phoneLabel">010-3004-0452</span></a>
+  </div>
+</header>
+<main>
+  <div id="backupBanner" class="banner hidden" role="status">
+    <p id="backupBannerText"></p>
+    <div class="actions">
+      <button type="button" id="backupNow">지금 JSON 백업 받기</button>
+      <button type="button" id="backupLater" class="secondary">내일 다시 알림</button>
+    </div>
+  </div>
+  <nav>
+    <button type="button" id="tabAll" class="active">전체 원고</button>
+    <button type="button" id="tabCompleted">완성본</button>
+    <button type="button" id="tabArchive">보관함</button>
+    <button type="button" id="tabCalendar">달력</button>
+    <button type="button" id="tabNew">새 글 작성</button>
+    <button type="button" id="tabBackup">백업</button>
+  </nav>
+
+  <section id="posts">
+    <div class="card">
+      <label for="search">원고 검색</label>
+      <input id="search" placeholder="제목, 차량, 지역, 본문">
+      <p id="count" class="muted"></p>
+    </div>
+    <div id="postList"></div>
+  </section>
+
+  <section id="editor" class="hidden">
+    <div class="card">
+      <h2 id="editorTitle">새 글 작성</h2>
+      <p class="muted">제목은 검색어가 앞에 옵니다. 인천 작업은 “인천 스마트키 복사”로 시작합니다. 본문 유형은 글마다 바뀝니다.</p>
+      <label for="title">제목</label>
+      <input id="title" placeholder="초안 작성을 누르면 검색어가 앞에 채워집니다">
+      <div class="actions">
+        <button type="button" id="recommendTitles" class="secondary">추천 제목 10개</button>
+      </div>
+      <div id="titleSuggestions"></div>
+      <div class="grid2">
+        <div><label for="car">차량명</label><input id="car" placeholder="예: 차량명"></div>
+        <div><label for="year">연식</label><input id="year" inputmode="numeric" placeholder="예: 2020"></div>
+      </div>
+      <label for="sido">시·도</label>
+      <select id="sido"></select>
+      <label for="sigungu">시·군·구</label>
+      <select id="sigungu"></select>
+      <label for="dong">읍·면·동</label>
+      <select id="dong"></select>
+      <label for="region">상세 지역 직접입력</label>
+      <input id="region" placeholder="목록에 없으면 동·아파트·장소를 입력">
+      <label for="work">작업 종류</label>
+      <input id="work" placeholder="예: 스마트키 추가">
+      <div class="grid2">
+        <div>
+          <label for="publishDate">발행 예정일 / 작업일</label>
+          <input id="publishDate" type="date">
+        </div>
+        <div>
+          <label for="status">상태</label>
+          <select id="status">
+            <option value="draft">초안</option>
+            <option value="completed">완성본</option>
+            <option value="posted">게시 완료</option>
+            <option value="archived">보관함</option>
+          </select>
+        </div>
+      </div>
+      <label for="reason">작업 사유 / 고객 요청</label>
+      <input id="reason" placeholder="확인한 내용만 입력">
+      <label for="equipment">장비 / 작업 과정</label>
+      <input id="equipment" placeholder="확인한 내용만 입력">
+      <label for="result">작업 결과</label>
+      <input id="result" placeholder="확인한 결과만 입력">
+      <div class="actions">
+        <button type="button" id="generateDraft">제목 · 본문 · 태그 자동 작성</button>
+        <button type="button" id="cycleTemplate" class="secondary">다른 문장으로</button>
+      </div>
+      <label for="body">본문</label>
+      <textarea id="body"></textarea>
+      <label for="tags">태그</label>
+      <textarea id="tags" style="min-height:80px"></textarea>
+      <p id="writeStatus" class="muted"></p>
+    </div>
+
+    <div class="card">
+      <h2>사진</h2>
+      <p class="muted">가져올 때 긴 변 1280px, JPEG 품질 0.8로 줄입니다. 고른 직후 예전 사진과 해시로 비교합니다.</p>
+      <label for="photoFiles">사진 추가</label>
+      <input id="photoFiles" type="file" accept="image/*" multiple>
+      <div class="grid2">
+        <div><label for="phone">사진 전화번호</label><input id="phone" value="010-3004-0452"></div>
+        <div>
+          <label for="phoneSize">전화번호 크기</label>
+          <select id="phoneSize">
+            <option value="0.05">보통</option>
+            <option value="0.062" selected>조금 크게</option>
+            <option value="0.075">크게</option>
+          </select>
+        </div>
+      </div>
+      <div id="photoDup" class="dupbox hidden"></div>
+      <div id="editorPhotos" class="photos"></div>
+      <div class="actions">
+        <button type="button" id="watermark" class="orange">전화번호 넣기</button>
+        <button type="button" id="downloadMarked" class="secondary">번호 사진 저장</button>
+        <button type="button" id="clearPhotos" class="secondary">사진 비우기</button>
+        <button type="button" id="rebuildPhotoDB" class="secondary">중복 다시 검사</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>네이버에 올릴 때</h2>
+      <div class="helper">
+        <ol>
+          <li>제목을 복사해 네이버 제목에 붙입니다.</li>
+          <li>본문을 복사합니다. 본문 안에 견적 주소가 들어 있습니다.</li>
+          <li>견적 링크와 전화 링크를 따로 복사해 버튼이나 문구에 넣습니다.</li>
+          <li>발행한 뒤 글 주소를 아래 칸에 붙여 저장합니다.</li>
+        </ol>
+        <p>견적 링크 <a id="naverQuoteUrl" class="inline" href="quote.html" target="_blank" rel="noopener">quote.html</a></p>
+        <div class="actions">
+          <button type="button" id="copyTitle">제목 복사</button>
+          <button type="button" id="copyBody" class="secondary">본문 복사</button>
+          <button type="button" id="copyTags" class="secondary">태그 복사</button>
+          <button type="button" id="copyQuoteLink" class="orange">견적 링크 복사</button>
+          <button type="button" id="copyTelLink" class="secondary">전화 링크 복사</button>
+          <a class="call" id="callBtn2" href="tel:01030040452">바로 전화</a>
+          <button type="button" id="openNaver" class="ok">네이버 열기</button>
+        </div>
+        <p id="copyStatus" class="muted"></p>
+        <label for="naverUrl">네이버 게시글 주소</label>
+        <input id="naverUrl" placeholder="https://blog.naver.com/...">
+        <div class="actions"><button type="button" id="saveNaverUrl" class="ok">주소 저장 후 게시 완료</button></div>
+      </div>
+      <div class="actions">
+        <button type="button" id="save">원고 저장</button>
+        <button type="button" id="saveArchive" class="secondary">보관함에 저장</button>
+        <button type="button" id="deleteBtn" class="danger hidden">이 원고 삭제</button>
+        <button type="button" id="cancel" class="secondary">취소</button>
+      </div>
+    </div>
+  </section>
+
+  <section id="calendar" class="hidden">
+    <div class="card">
+      <div class="cal-head">
+        <button type="button" id="prevMonth" class="secondary">이전</button>
+        <h2 id="monthTitle"></h2>
+        <button type="button" id="nextMonth" class="secondary">다음</button>
+      </div>
+      <div id="calendarGrid" class="cal-grid"></div>
+      <p id="calSummary" class="muted"></p>
+      <div id="calSelected"></div>
+      <label for="calendarMonth">월 선택</label>
+      <input id="calendarMonth" type="month">
+    </div>
+  </section>
+
+  <section id="backup" class="hidden">
+    <div class="card">
+      <h2>JSON 백업</h2>
+      <p>사진이 포함된 원고를 파일로 받습니다. 받은 파일은 이 공개 깃허브에 올리지 마세요. 휴대폰 파일이나 개인 저장소에만 두세요.</p>
+      <p id="lastBackup" class="muted"></p>
+      <label for="backupDays">알림 간격</label>
+      <select id="backupDays">
+        <option value="1">1일</option>
+        <option value="3" selected>3일</option>
+        <option value="7">7일</option>
+      </select>
+      <label style="margin-top:12px"><input id="autoBackup" type="checkbox" checked style="width:auto;margin-right:8px"> 기한이 지나면 앱을 열 때 백업 파일을 받습니다</label>
+      <p class="muted">브라우저가 자동 다운로드를 막으면 위쪽 알림에서 직접 받으세요. 백업 파일은 저장소에 올리지 않습니다.</p>
+      <div class="actions"><button type="button" id="export">전체 백업 다운로드</button></div>
+    </div>
+    <div class="card">
+      <h2>백업 불러오기</h2>
+      <p>같은 글 번호는 더 최근 수정본만 반영합니다. 없는 글만 추가합니다.</p>
+      <input id="importFile" type="file" accept=".json,application/json" class="hidden">
+      <button type="button" id="import" class="secondary">JSON 파일 선택</button>
+      <p id="importResult"></p>
+    </div>
+    <div class="card">
+      <h2>표시 설정</h2>
+      <label for="settingBusiness">상호</label>
+      <input id="settingBusiness">
+      <label for="settingPhone">전화번호</label>
+      <input id="settingPhone">
+      <label for="settingQuote">견적 안내 문구</label>
+      <textarea id="settingQuote" style="min-height:90px"></textarea>
+      <div class="actions"><button type="button" id="saveSettings">설정 저장</button></div>
+      <p id="settingsStatus" class="muted"></p>
+    </div>
+    <div class="card">
+      <h2>클라우드 동기화 (선택)</h2>
+      <p>로그인하지 않아도 원고 작성, 보관, 달력, 백업은 모두 됩니다. 클라우드를 켜면 이 브라우저 저장과 함께 복사할 수 있습니다.</p>
+      <label for="cloudEmail">이메일</label>
+      <input id="cloudEmail" type="email" autocomplete="username">
+      <label for="cloudPassword">비밀번호</label>
+      <input id="cloudPassword" type="password" autocomplete="current-password">
+      <div class="actions">
+        <button type="button" id="cloudLogin" class="secondary">로그인</button>
+        <button type="button" id="cloudPull" class="secondary">클라우드에서 가져오기</button>
+        <button type="button" id="cloudPush" class="secondary">클라우드에 올리기</button>
+        <button type="button" id="cloudLogout" class="danger hidden">로그아웃</button>
+      </div>
+      <p id="cloudStatus" class="muted"></p>
+    </div>
+  </section>
+</main>
+<script src="regions.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
