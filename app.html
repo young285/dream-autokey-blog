@@ -104,6 +104,7 @@ a.inline{color:#1d4ed8;word-break:break-all}
       <label for="search">원고 검색</label>
       <input id="search" placeholder="제목, 차량, 지역, 본문">
       <p id="count" class="muted"></p>
+      <p id="migrationNote" class="muted hidden"></p>
     </div>
     <div id="postList"></div>
   </section>
@@ -254,8 +255,16 @@ a.inline{color:#1d4ed8;word-break:break-all}
       <div class="actions"><button type="button" id="export">전체 백업 다운로드</button></div>
     </div>
     <div class="card">
+      <h2>이전 원고 찾기</h2>
+      <p>예전에 이 휴대폰에서 작성한 원고가 앱 안에 안 보이면 여기서 다시 찾습니다.</p>
+      <p class="muted" id="recoveryScope">이 버튼은 이 휴대폰의 이 브라우저 안에 남은 원고만 찾습니다.</p>
+      <button type="button" id="findOldPosts">이전 원고 찾기</button>
+      <p id="recoveryResult"></p>
+    </div>
+    <div class="card">
       <h2>백업 불러오기</h2>
-      <p>같은 글 번호는 더 최근 수정본만 반영합니다. 없는 글만 추가합니다.</p>
+      <p>같은 글 번호는 더 최근 수정본만 반영합니다. 없는 글만 추가합니다. 예전 백업의 사진, 전화번호가 들어간 사진, 사진 지문, 견적 문구도 그대로 읽습니다.</p>
+      <p class="muted">받은 파일은 보통 휴대폰의 내 파일 &gt; 다운로드 폴더에 있습니다.</p>
       <input id="importFile" type="file" accept=".json,application/json" class="hidden">
       <button type="button" id="import" class="secondary">JSON 파일 선택</button>
       <p id="importResult"></p>
